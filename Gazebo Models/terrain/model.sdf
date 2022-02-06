@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="terrain1">
+    <link name="link">
+      <inertial>
+      <pose>0 0 0.0175 0 0 0</pose>
+        <mass>0.1</mass>
+	  <inertia>
+	    <ixx>5</ixx>
+	    <ixy>05</ixy>
+	    <ixz>5</ixz>
+	    <iyy>5</iyy>
+	    <iyz>5</iyz>
+	    <izz>5</izz>
+	  </inertia>
+      </inertial>
+      <collision name="collision">
+        <pose>0 0 0.0175 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.098</radius>
+            <length>0.035</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://terrain/terrain1.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
