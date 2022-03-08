@@ -65,6 +65,8 @@ dstarlite::dstarlite() : km(0)
     //these are in the a* old implementation but don't think we need them as they are called in subscribe in listener.cpp
     // gpsCallback();
     // costMapCallback(); 
+
+
 }
 
 std::pair<int,int> dstarlite::calculate_key(Node &node)
@@ -81,8 +83,9 @@ void dstarlite::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     // Fill out the needed "start" position member variable using info from the costmap origin message
     start = Node({msg->info.origin.orientation.x, msg->info.origin.orientation.y}, 0);
 
-    //pushes start node to priority queue so that it is not empty when starting the search
-    U.push(start);
+    //forgets about old priority queue and pushes new start node (current position) to priority queue so that it is not empty when starting the search
+    U = std::priority_queue<dstarlite::Node, std::vector<dstarlite::Node>, customGreater>();
+    U.push(target);
 
     // Fill out the costmap member variable using info from the occupancy grid costmap message
     for(int i = 0; i < costmap_width; i++){
