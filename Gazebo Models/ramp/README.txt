@@ -1,0 +1,1 @@
+Make sure to move any model folders into the ~/.gazebo/models in order for the path to be correct.
