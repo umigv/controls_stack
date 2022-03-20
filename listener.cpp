@@ -1,5 +1,5 @@
 
-#include "dstarlite.h"
+#include "rpastar.h"
 #include <ros/ros.h">
 #include <std_msgs/String.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -16,12 +16,12 @@ class calculate_path {
 private:
 	ros::Subscriber &gps;
 	ros::Subscriber &costmap;
-	dstarlite &listener;
+	rpastar &listener;
 	bool at_target;
 public:
 	vector<geometry_msgs::position> solution_path;
-	calculate_path(ros::Subscriber &gps_in, ros::Subscriber &costmap_in, dstarlite &d_star_lite)
-		: gps(gps_in), costmap(costmap_in), listener(d_star_lite), at_target(false) {}
+	calculate_path(ros::Subscriber &gps_in, ros::Subscriber &costmap_in, rpastar &rp_astar)
+		: gps(gps_in), costmap(costmap_in), listener(rp_astar), at_target(false) {}
 	void operator()(const ros::TimerEvent&);
 	bool get_at_target() const{
 		return at_target;
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
 	ros::NodeHandle n;
 
-	dstarlite listener = dstarlite{};
+	rpastar listener = rpastar{};
 
 	ros::Subscriber gps_sub = n.subscribe(kGPS_topic, 1000, listener.gpsCallback);
 	ros::Subscriber costmap_sub = n.subscribe(kCostmap_topic, 1000, listener.costMapCallback);

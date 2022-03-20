@@ -1,6 +1,5 @@
-
-#ifndef _DSTARLITE_H
-#define _DSTARLITE_H
+#ifndef RPASTAR_H
+#define RPASTAR_H
 
 #include <iostream>
 #include <queue>
@@ -8,41 +7,39 @@
 #include <cmath>
 #include <vector>
 
-class dstarlite
+class rpastar
 {
     protected:
         class Node
         {
         private:
-            float g;
-            float rhs;
-            bool isObs;
-            bool neighbors_generated;
+            // distance from start node to current node
+            float g_score;
+            // straight line distance to the target node
+            float h_score;
+            //g_score + h_score
             std::pair<int, int> state;
-            std::vector<Node> neighbors;
-            std::pair<float, float> k;
+            Node *parent;
         public:
             Node();
-            Node(std::pair<int, int> state);
-            Node(std::pair<int, int> state, float rhs_in);
-            float get_g();
-            float get_rhs();
-            bool less_than(Node &other);
-            bool greater_than(Node &other);
-            bool equal_to(Node &other);
-            void add_to_neighbors();
-            float calculateDistance(Node other);
+            Node(std::pair<int, int> state_in,Node *parent);
+            void set_h(Node &target);
+            void set_g(float g_in);
+            void set_state(int row, int col);
+            std::pair<int,int> get_state();
+            float get_f_score();
+            bool at_target(Node &target)
         };
 
         class customGreater {
             public:
             bool operator() (Node &lhs, Node &rhs)
             {
-                return lhs.greater_than(rhs);
+                return lhs.get_f_score() > rhs.get_f_score();
             }
         };
 
-        class Node_hash{
+        class Node_hash {
             size_t operator()(const Node& node) const;
         };
 
@@ -51,12 +48,11 @@ class dstarlite
         };
 
     public:
-        dstarlite();
-        std::pair<int,int> calculate_key(Node &node);
+        rpastar();
+        void find_target();
         void search();
         void backtracker(std::vector<Node>& path);
-        bool validNode(const Node& node);
-        bool processNode(const int x, const int y, const Node* parent);
+        void processNode(int x, int y, Node* parent);
         void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
         void costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
         double calculateEuclideanDistance(const Node& node1, const Node& node2);
@@ -68,7 +64,7 @@ class dstarlite
         std::vector<Node> path;
         std::unordered_set<Node, Node_hash, Compare_coord> closed_set;
         std::vector<std::vector<int>> cost_map;
-        float km;     
+        //std::vector<std::vector<Node>> graph;
 };
 
 

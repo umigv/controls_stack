@@ -1,7 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOABLS_H
 
-#include "dstarlite.h";
+#include "rpastar.h";
 
 namespace globals
 {
