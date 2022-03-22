@@ -1,16 +1,18 @@
 #include <iostream>
 #include <vector>
 #include "rpastar.h"
+#include "cmath"
 
-
+static const int threshold = 50;
 
 //default constructor
-rpastar::Node::Node() : g_score(10000), h_score(0) {}
+rpastar::Node::Node() : g_score(INFINITY), h_score(0) {}
 
 //main constructor used for creating a Node
 
 //constructor for the start node which sets rhs to 0
-rpastar::Node::Node(std::pair<int, int> state_in, Node * parent) : state(state), parent(parent) {
+rpastar::Node::Node(int row, int col, Node * parent) : parent(parent) {
+    state = {row,col};
     g_score = parent->g_score + 1;
 }
 
@@ -30,6 +32,11 @@ void rpastar::Node::set_state(int row, int col)
     state.second = col;
 }
 
+void rpastar::Node::set_parent(Node *parent_in)
+{
+    parent = parent_in;
+}
+
 std::pair<int,int> rpastar::Node::get_state()
 {
     return state;
@@ -40,9 +47,9 @@ float rpastar::Node::get_f_score()
     return g_score + h_score;
 }
 
-bool rpastar::Node::at_target(Node &target)
+bool rpastar::Node::at_target(std::pair<int,int> &target_state)
 {
-    return (state.first == target.state.first && state.second == target.state.second);
+    return (state.first == target_state.first && state.second == target_state.second);
 }
 
 
@@ -65,7 +72,7 @@ void rpastar::search()
     {
         Node current_node = U.top();
         U.pop();
-        if (current_node.at_target(target))
+        if (current_node.at_target(target_state))
         {
             break;
         }
@@ -85,7 +92,17 @@ void rpastar::search()
 
 void rpastar::processNode(int row, int col, Node *parent)
 {
-    Node node(std::make_pair(row,col),parent);
+    if (row < 0 || row >= cost_map.size() || col < 0 || col >= cost_map[0].size())
+    {
+        return;
+    }
+    if (cost_map[row][col] > threshold)
+    {
+        return;
+    }
+    Node &new_node = graph[row][col];
+    new_node = Node(row,col,parent);
+    new_node.set_h(target_state);
 }
 
 // called each time a new costmap is recieved...
@@ -106,28 +123,28 @@ void rpastar::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     find_target();
     //graph[costmap_height/2][costmap_width/2].set_g(0);
 
-    
-    // Fill out the needed "start" position member variable using info from the costmap origin message
-    start = Node({costmap_height/2,costmap_width/2},0);
-
-    //forgets about old priority queue and pushes new start node (current position) to priority queue so that it is not empty when starting the search
-    U = std::priority_queue<rpastar::Node, std::vector<rpastar::Node>, customGreater>();
-    U.push(start);
-
 
     // Fill out the costmap member variable using info from the occupancy grid costmap message
     for(int i = 0; i < costmap_width; i++){
         for(int j = 0; j < costmap_height; j++){
             cost_map[i][j] = msg->data[i + (j * costmap_width)];
-            //graph[i][j].set_state(i,j);
+            graph[i][j].set_state(i,j);
         }
     }
+
+    // Fill out the needed "start" position member variable using info from the costmap origin message
+    start_state = {costmap_height/2,costmap_width/2};
+    graph[start_state.first][start_state.second].set_g(0); 
+
+    //forgets about old priority queue and pushes new start node (current position) to priority queue so that it is not empty when starting the search
+    U = std::priority_queue<rpastar::Node, std::vector<rpastar::Node>, customGreater>();
+    U.push(graph[start_state.first][start_state.second]);
 
     
 }
 
 void rpastar::gpsCallback(const nav_msgs::Odometry::ConstPtr& msg){
     // Fill out the needed "target" position member variable using info from the odom message
-    target = Node({msg->pose.pose.position.x, msg->pose.pose.position.y}, INFINITY);
+    target_state = {msg->pose.pose.position.x, msg->pose.pose.position.y};
 }
 

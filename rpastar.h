@@ -22,13 +22,14 @@ class rpastar
             Node *parent;
         public:
             Node();
-            Node(std::pair<int, int> state_in,Node *parent);
-            void set_h(Node &target);
+            Node(int row, int col,Node *parent);
+            void set_h(std::pair<int,int> target_state);
             void set_g(float g_in);
             void set_state(int row, int col);
+            void set_parent(Node *parent_in);
             std::pair<int,int> get_state();
             float get_f_score();
-            bool at_target(Node &target)
+            bool at_target(std::pair<int,int> &target);
         };
 
         class customGreater {
@@ -59,12 +60,12 @@ class rpastar
 
     private:
         std::priority_queue<Node, std::vector<Node>, customGreater> U;
-        Node start;
-        Node target;
+        std::pair<int,int> start_state;
+        std::pair<int,int> target_state;
         std::vector<Node> path;
         std::unordered_set<Node, Node_hash, Compare_coord> closed_set;
         std::vector<std::vector<int>> cost_map;
-        //std::vector<std::vector<Node>> graph;
+        std::vector<std::vector<Node>> graph;
 };
 
 
