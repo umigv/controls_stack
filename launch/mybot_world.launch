@@ -9,7 +9,9 @@
   <arg name="debug" default="false"/>
   
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find goat_description)/world/cone_hell.world"/>
+    <!-- <arg name="world_name" value="$(find goat_description)/world/cone_hell.world"/> -->
+    <!-- <arg name="world_name" value="$(find goat_description)/world/finalWorldPotholes.sdf"/> -->
+    <arg name="world_name" value="$(find goat_description)/world/simulationWorld.sdf"/>
     <arg name="paused" value="$(arg paused)"/>
     <arg name="use_sim_time" value="$(arg use_sim_time)"/>
     <arg name="gui" value="$(arg gui)"/>
