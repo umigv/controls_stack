@@ -16,9 +16,9 @@ rpastar::Node::Node(int row, int col, Node * parent) : parent(parent) {
     g_score = parent->g_score + 1;
 }
 
-void rpastar::Node::set_h(Node &target)
+void rpastar::Node::set_h(std::pair<int,int> &target_state)
 {
-    h_score = sqrt(pow(target.state.first - state.first, 2) - pow(target.state.second - state.second, 2));
+    h_score = sqrt(pow(target_state.first - state.first, 2) - pow(target_state.second - state.second, 2));
 }
 
 void rpastar::Node::set_g(float g_in)
@@ -42,7 +42,7 @@ std::pair<int,int> rpastar::Node::get_state()
     return state;
 }
 
-float rpastar::Node::get_f_score()
+float rpastar::Node::get_f_score() const
 {
     return g_score + h_score;
 }
@@ -103,6 +103,14 @@ void rpastar::processNode(int row, int col, Node *parent)
     Node &new_node = graph[row][col];
     new_node = Node(row,col,parent);
     new_node.set_h(target_state);
+    std::unordered_set<Node>::iterator it = closed_set.find(new_node);
+    if(it != closed_set.end()){
+        if (it->get_f_score() < new_node.get_f_score())
+        {
+            return;
+        }
+    }
+   
 }
 
 // called each time a new costmap is recieved...

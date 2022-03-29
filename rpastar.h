@@ -23,13 +23,17 @@ class rpastar
         public:
             Node();
             Node(int row, int col,Node *parent);
-            void set_h(std::pair<int,int> target_state);
+            void set_h(std::pair<int,int> &target_state);
             void set_g(float g_in);
             void set_state(int row, int col);
             void set_parent(Node *parent_in);
             std::pair<int,int> get_state();
-            float get_f_score();
-            bool at_target(std::pair<int,int> &target);
+            float get_f_score() const;
+            bool at_target(std::pair<int,int> &target_state);
+            const bool& operator==(const Node &rhs)
+            {
+                return this->state == rhs.state;
+            }
         };
 
         class customGreater {
@@ -63,7 +67,7 @@ class rpastar
         std::pair<int,int> start_state;
         std::pair<int,int> target_state;
         std::vector<Node> path;
-        std::unordered_set<Node, Node_hash, Compare_coord> closed_set;
+        std::unordered_set<Node> closed_set;
         std::vector<std::vector<int>> cost_map;
         std::vector<std::vector<Node>> graph;
 };
