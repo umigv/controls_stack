@@ -1,0 +1,13 @@
+<package format="2">
+    <name>goat_description</name>
+    <version>0.1.1</version>
+    <description>URDF for the GOAT.</description>
+    <maintainer email="zyning@umich.edu">Jason Ning</maintainer>
+    <maintainer email="kdihora@umich.edu">Krishna Dihora</maintainer>
+    <license>BSD 3-Clause License</license>
+
+    <url type="repository">https://github.com/umigv/controls_stack</url>
+    <author>Jason Ning and Krishna Dihora</author>
+
+    <buildtool_depend>catkin</buildtool_depend>
+</package>
