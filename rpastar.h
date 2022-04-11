@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <queue>
-#include <unordered_set>
+#include <unordered_map>
 #include <cmath>
 #include <vector>
 
@@ -27,6 +27,10 @@ class rpastar
             void set_g(float g_in);
             void set_state(int row, int col);
             void set_parent(Node *parent_in);
+            Node *get_parent()
+            {
+                return parent;
+            }
             std::pair<int,int> get_state();
             float get_f_score() const;
             bool at_target(std::pair<int,int> &target_state);
@@ -34,6 +38,7 @@ class rpastar
             {
                 return this->state == rhs.state;
             }
+            
         };
 
         class customGreater {
@@ -56,7 +61,7 @@ class rpastar
         rpastar();
         void find_target();
         void search();
-        void backtracker(std::vector<Node>& path);
+        void backtracker();
         void processNode(int x, int y, Node* parent);
         void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
         void costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
@@ -67,9 +72,11 @@ class rpastar
         std::pair<int,int> start_state;
         std::pair<int,int> target_state;
         std::vector<Node> path;
-        std::unordered_set<Node> closed_set;
+        std::unordered_map<std::pair<int,int>, float> open_set;
+        std::unordered_map<std::pair<int,int>, float> closed_set;
         std::vector<std::vector<int>> cost_map;
         std::vector<std::vector<Node>> graph;
+        
 };
 
 
