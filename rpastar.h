@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <vector>
+#include "GlobalPlanner.h"
 
 class rpastar
 {
@@ -21,6 +22,7 @@ class rpastar
             std::pair<int, int> state;
             Node *parent;
         public:
+            friend class GlobalPlanner
             Node();
             Node(int row, int col,Node *parent);
             void set_h(std::pair<int,int> &target_state);
@@ -58,7 +60,7 @@ class rpastar
         };
 
     public:
-        rpastar();
+        rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in);
         void find_target();
         void search();
         void backtracker();
@@ -70,7 +72,7 @@ class rpastar
     private:
         std::priority_queue<Node, std::vector<Node>, customGreater> U;
         std::pair<int,int> start_state;
-        std::pair<int,int> target_state;
+        std::pair<int,int_fast64_t> target_state;
         std::vector<Node> path;
         std::unordered_map<std::pair<int,int>, float> open_set;
         std::unordered_map<std::pair<int,int>, float> closed_set;

@@ -53,7 +53,7 @@ bool rpastar::Node::at_target(std::pair<int,int> &target_state)
 }
 
 
-rpastar::rpastar()
+rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in) : start_state(start_state_in), target_state(target_state_in)
 {
     //these are in the a* old implementation but don't think we need them as they are called in subscribe in listener.cpp
     // gpsCall();
