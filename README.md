@@ -32,13 +32,15 @@ In order to run the simulation stack, do the following:
 Here is how to install Google Cartographer and make sure it correctly builds with the controls_stack repository. This section is based off of [This Document](https://docs.google.com/document/d/1dLoVytrA96HlgC0e1s-W8zJuX13aX9Q5IUZVzJPhOwI/edit?usp=sharing).
 
 1. Make sure ROS Noetic is fully installed. Use the UMARV [Installing Ros](https://docs.google.com/document/d/1YBR9MZa_gXv4rLe0ycrgLoiFHV2Y7EJSUOpVpPO3f_U/edit) document to do this.
-2. Make sure you delete these folders if they already exist:\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/catkin_ws/src/cartographer\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/catkin_ws/src/cartographer_ros\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/catkin_ws/src/ceres_solver\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/catkin_ws/ceres_solver\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/catkin_ws/abseil-cpp\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~/catkin_ws/protobuf\
+2. Make sure you delete these folders if they already exist:
+
+> ~/catkin_ws/src/cartographer\
+> ~/catkin_ws/src/cartographer_ros\
+> ~/catkin_ws/src/ceres_solver\
+> ~/catkin_ws/ceres_solver\
+> ~/catkin_ws/abseil-cpp\
+> ~/catkin_ws/protobuf\
+
 3. Run the following commands:\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`cd ~/catkin_ws`\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`catkin clean`
