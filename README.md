@@ -24,8 +24,9 @@ In order to run the simulation stack, do the following:
 6. If you want to move the robot in the gazebo simulation, first setup a relay in an open terminal: `rosrun topic_tools relay /turtle1/cmd_vel /cmd_vel`.
 7. Next you will need to setup the teleop controls: `rosrun turtlesim turtle_teleop_key`.
 8. Make sure you are in the terminal window when using the directional keys to move the robot.
-9. The IMU values are pushed to the `imu` node on ros. To see them, run `rostopic echo imu`.
-10. The odometry values are pushed to the `odom` node on ros.
+9. The IMU values are published to the `imu` node on ros. To see them, run `rostopic echo imu`.
+10. The odometry values are published to the `odom` node on ros.
+11. The lidar values are published to the `lidar_points` node on ros.
 
 ## Cartographer Installation
 
