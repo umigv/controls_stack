@@ -98,6 +98,7 @@ namespace gazebo
 
     /// \brief ROS publisher
     private: ros::Publisher pub_;
+    private: ros::Publisher pub2_;
 
     /// \brief topic name
     private: std::string topic_name_;

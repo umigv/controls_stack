@@ -188,12 +188,28 @@ void GazeboRosVelodyneLaser::Load(sensors::SensorPtr _parent, sdf::ElementPtr _s
 
   // Advertise publisher with a custom callback queue
   if (topic_name_ != "") {
+    // std::cerr << "Topic Name: " << topic_name_ << "\n";
+    ros::AdvertiseOptions ao2 = ros::AdvertiseOptions::create<sensor_msgs::PointCloud2>(
+      topic_name_, 1,
+      boost::bind(&GazeboRosVelodyneLaser::ConnectCb, this),
+      boost::bind(&GazeboRosVelodyneLaser::ConnectCb, this),
+      ros::VoidPtr(), &laser_queue_);
+
+    if (topic_name_ == "/velodyne_points") {
+      topic_name_ = "/lidar_points";
+    }
+    if (topic_name_ == "/velodyne_points2") {
+      topic_name_ = "/lidar_points2";
+    }
+
     ros::AdvertiseOptions ao = ros::AdvertiseOptions::create<sensor_msgs::PointCloud2>(
         topic_name_, 1,
         boost::bind(&GazeboRosVelodyneLaser::ConnectCb, this),
         boost::bind(&GazeboRosVelodyneLaser::ConnectCb, this),
         ros::VoidPtr(), &laser_queue_);
+    
     pub_ = nh_->advertise(ao);
+    pub2_ = nh_->advertise(ao2);
   }
 
   // Sensor generation off by default
@@ -214,7 +230,7 @@ void GazeboRosVelodyneLaser::Load(sensors::SensorPtr _parent, sdf::ElementPtr _s
 void GazeboRosVelodyneLaser::ConnectCb()
 {
   boost::lock_guard<boost::mutex> lock(lock_);
-  if (pub_.getNumSubscribers()) {
+  if (pub_.getNumSubscribers() >= 0) {
     if (!sub_) {
 #if GAZEBO_MAJOR_VERSION >= 7
       sub_ = gazebo_node_->Subscribe(this->parent_ray_sensor_->Topic(), &GazeboRosVelodyneLaser::OnScan, this);
@@ -384,6 +400,7 @@ void GazeboRosVelodyneLaser::OnScan(ConstLaserScanStampedPtr& _msg)
 
   // Publish output
   pub_.publish(msg);
+  pub2_.publish(msg);
 }
 
 // Custom Callback Queue
