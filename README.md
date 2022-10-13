@@ -17,7 +17,7 @@ This simulation model will help test the robot in an environment similar to the 
 In order to run the simulation stack, do the following:
 
 1. Make sure this repository is cloned into your catkin_ws/src folder.
-2. Run `catkin_build`. You might have to move to the catkin_ws directory when running this command. If problems occur, `catkin clean` can be used to clear previous builds.
+2. Run `catkin build`. You might have to move to the catkin_ws directory when running this command. If problems occur, `catkin clean` can be used to clear previous builds.
 3. Next, run `source ~/catkin_ws/devel/setup.bash`. 
 4. Use the command `roslaunch goat_description mybot_world.launch` to run the simulation model in gazebo and rviz.
 5. The following section is for moving the robot around.
