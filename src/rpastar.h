@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <cmath>
 #include <vector>
+#include "nav_msgs/OccupancyGrid.h"
+
 
 class rpastar
 {
@@ -62,7 +64,7 @@ class rpastar
         rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in);
         void find_target();
         void search();
-        void backtracker();
+        std::vector<Node> backtracker();
         void processNode(int x, int y, Node* parent);
         //void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
         void costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);

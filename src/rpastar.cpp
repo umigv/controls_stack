@@ -53,11 +53,11 @@ bool rpastar::Node::at_target(std::pair<int,int> &target_state)
 }
 
 
-rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in) : start_state(start_state_in), target_state(target_state_in)
+rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, const nav_msgs::OccupancyGrid::ConstPtr& msg) : start_state(start_state_in), target_state(target_state_in)
 {
     //these are in the a* old implementation but don't think we need them as they are called in subscribe in listener.cpp
     // gpsCall();
-    // costMapCallback(); 
+    costMapCallback(msg); 
 
 }
 
@@ -138,7 +138,7 @@ void rpastar::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     // {
     //     graph[i].resize(costmap_width);
     // }
-    find_target();
+    //find_target();
     //graph[costmap_height/2][costmap_width/2].set_g(0);
 
 
@@ -151,7 +151,7 @@ void rpastar::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     }
 
     // Fill out the needed "start" position member variable using info from the costmap origin message
-    start_state = {costmap_height/2,costmap_width/2};
+    //start_state = {costmap_height/2,costmap_width/2};
     graph[start_state.first][start_state.second].set_g(0); 
     graph[start_state.first][start_state.second].set_h(target_state); 
     graph[start_state.first][start_state.second].set_parent(nullptr); 
@@ -169,7 +169,7 @@ void rpastar::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 //     target_state = {msg->pose.pose.position.x, msg->pose.pose.position.y};
 // }
 
-void rpastar::backtracker()
+std::vector<Node> rpastar::backtracker()
 {
     Node *curr_node = &graph[target_state.first][target_state.second];
     while(curr_node != nullptr)
@@ -177,4 +177,5 @@ void rpastar::backtracker()
         path.push_back(*curr_node);
         curr_node = curr_node->get_parent();
     }
+    return path
 }

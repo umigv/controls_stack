@@ -58,6 +58,10 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
   }
   std::cout << "Running A*..." << std::endl;
 
+  rpastar runner({0,0}, {3,3}, &map);
+  runner.search();
+  std::vector<Node> path = runner.backtracker();
+
 }
 // %EndTag(CALLBACK)%
 
