@@ -6,7 +6,7 @@
 static const int threshold = 50;
 
 //default constructor
-rpastar::Node::Node() : g_score(INFINITY), h_score(0) {}
+//rpastar::Node::Node() : g_score(INFINITY), h_score(0) {}
 
 //main constructor used for creating a Node
 
@@ -53,12 +53,11 @@ bool rpastar::Node::at_target(std::pair<int,int> &target_state)
 }
 
 
-rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, const nav_msgs::OccupancyGrid::ConstPtr& msg) : start_state(start_state_in), target_state(target_state_in)
+rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid * msg) : start_state(start_state_in), target_state(target_state_in)
 {
     //these are in the a* old implementation but don't think we need them as they are called in subscribe in listener.cpp
     // gpsCall();
     costMapCallback(msg); 
-
 }
 
 void rpastar::find_target()
@@ -124,7 +123,7 @@ void rpastar::processNode(int row, int col, Node *parent)
 }
 
 // called each time a new costmap is recieved...
-void rpastar::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
+void rpastar::costMapCallback(nav_msgs::OccupancyGrid* msg)
 {
 	// Fill out the costmap width and height from the occupancy grid info message
     int costmap_width = msg->info.width;
@@ -169,13 +168,13 @@ void rpastar::costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 //     target_state = {msg->pose.pose.position.x, msg->pose.pose.position.y};
 // }
 
-std::vector<Node> rpastar::backtracker()
+std::vector<std::pair<int,int>> rpastar::backtracker()
 {
     Node *curr_node = &graph[target_state.first][target_state.second];
     while(curr_node != nullptr)
     {
-        path.push_back(*curr_node);
+        path.push_back(curr_node->get_state());
         curr_node = curr_node->get_parent();
     }
-    return path
+    return path;
 }

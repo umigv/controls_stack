@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <queue>
-#include <unordered_map>
+#include <map>
 #include <cmath>
 #include <vector>
 #include "nav_msgs/OccupancyGrid.h"
@@ -61,22 +61,22 @@ class rpastar
         };
 
     public:
-        rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in);
+        rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid* msg);
         void find_target();
         void search();
-        std::vector<Node> backtracker();
+        std::vector<std::pair<int,int>> backtracker();
         void processNode(int x, int y, Node* parent);
         //void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
-        void costMapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+        void costMapCallback(nav_msgs::OccupancyGrid *msg);
         double calculateEuclideanDistance(const Node& node1, const Node& node2);
 
     private:
         std::priority_queue<Node, std::vector<Node>, customGreater> U;
         std::pair<int,int> start_state;
-        std::pair<int,int_fast64_t> target_state;
-        std::vector<Node> path;
-        std::unordered_map<std::pair<int,int>, float> open_set;
-        std::unordered_map<std::pair<int,int>, float> closed_set;
+        std::pair<int,int> target_state;
+        std::vector<std::pair<int,int>> path;
+        std::map<std::pair<int,int>, float> open_set;
+        std::map<std::pair<int,int>, float> closed_set;
         std::vector<std::vector<int>> cost_map;
         std::vector<std::vector<Node>> graph;
         

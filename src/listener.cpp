@@ -33,7 +33,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "std_msgs/Header.h"
 #include "nav_msgs/MapMetaData.h"
-#include "rpastar.h"
+#include "rpastar.cpp"
 
 nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg);
 void chatterCallback(const std_msgs::String::ConstPtr& msg);
@@ -57,10 +57,16 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
     std::cout << std::endl;
   }
   std::cout << "Running A*..." << std::endl;
-
-  rpastar runner({0,0}, {3,3}, &map);
+  std::pair<int,int> start(0,0);
+  std::pair<int,int> end(3,3);
+  // rpastar runner = rpastar::rpastar(start, end, &map);
+  rpastar runner(start, end, &map);
   runner.search();
-  std::vector<Node> path = runner.backtracker();
+  std::vector<std::pair<int,int>> path = runner.backtracker();
+  for (int i = 0; i < path.size(); i++)
+  {
+    std::cout << path[i].first << path[i].second << std::endl;
+  }
 
 }
 // %EndTag(CALLBACK)%
