@@ -3,7 +3,7 @@
 #include "rpastar.h"
 #include "cmath"
 
-static const int threshold = 50;
+static const int threshold = 0;
 
 //default constructor
 //rpastar::Node::Node() : g_score(INFINITY), h_score(0) {}
@@ -16,9 +16,11 @@ rpastar::Node::Node(int row, int col, Node * parent) : parent(parent) {
     g_score = parent->g_score + 1;
 }
 
+rpastar::Node::Node() : parent(nullptr), state({0,0}), g_score(0) {}
+
 void rpastar::Node::set_h(std::pair<int,int> &target_state)
 {
-    h_score = sqrt(pow(target_state.first - state.first, 2) - pow(target_state.second - state.second, 2));
+    h_score = sqrt(pow(target_state.first - state.first, 2) + pow(target_state.second - state.second, 2));
 }
 
 void rpastar::Node::set_g(float g_in)
@@ -74,18 +76,20 @@ void rpastar::search()
         open_set.erase(current_node.get_state());
         if (current_node.at_target(target_state))
         {
+            
             break;
         }
         int i = current_node.get_state().first;
         int j = current_node.get_state().second;
-        processNode(i-1, j, &current_node); // north
-        processNode(i, j+1, &current_node); // east
-        processNode(i+1, j, &current_node); // south
-        processNode(i, j-1, &current_node); // west
-        processNode(i-1, j+1, &current_node); // north-east
-        processNode(i+1, j+1, &current_node);// south-east
-        processNode(i-1, j-1, &current_node); // north-west
-        processNode(i+1, j+1, &current_node); // south-west
+        Node *parent_ptr = &graph[i][j];
+        processNode(i-1, j, parent_ptr); // north
+        processNode(i, j+1, parent_ptr); // east
+        processNode(i+1, j, parent_ptr); // south
+        processNode(i, j-1, parent_ptr); // west
+        // processNode(i-1, j+1, &current_node); // north-east
+        // processNode(i+1, j+1, &current_node);// south-east
+        // processNode(i-1, j-1, &current_node); // north-west
+        // processNode(i+1, j+1, &current_node); // south-west
         closed_set[current_node.get_state()] = current_node.get_f_score();
     }
 }
@@ -100,8 +104,7 @@ void rpastar::processNode(int row, int col, Node *parent)
     {
         return;
     }
-    Node &new_node = graph[row][col];
-    new_node = Node(row,col,parent);
+    Node new_node = Node(row,col,parent);
     new_node.set_h(target_state);
     auto open_it = open_set.find(new_node.get_state());
     if(open_it != open_set.end()){
@@ -118,6 +121,7 @@ void rpastar::processNode(int row, int col, Node *parent)
         }
     }
     U.push(new_node);
+    graph[row][col] = new_node;
     open_set[new_node.get_state()] = new_node.get_f_score();
     return;
 }
@@ -129,6 +133,8 @@ void rpastar::costMapCallback(nav_msgs::OccupancyGrid* msg)
     int costmap_width = msg->info.width;
     int costmap_height = msg->info.height;
     
+    cost_map = std::vector<std::vector<int>>(costmap_height, std::vector<int>(costmap_width, 0));
+    graph = std::vector<std::vector<rpastar::Node>>(costmap_height, std::vector<rpastar::Node>(costmap_width, rpastar::Node()));
 
 //initializing graph of nodes
     // graph.clear();
@@ -142,9 +148,9 @@ void rpastar::costMapCallback(nav_msgs::OccupancyGrid* msg)
 
 
     // Fill out the costmap member variable using info from the occupancy grid costmap message
-    for(int i = 0; i < costmap_width; i++){
-        for(int j = 0; j < costmap_height; j++){
-            cost_map[i][j] = msg->data[i + (j * costmap_width)];
+    for(int i = 0; i < costmap_height; i++){
+        for(int j = 0; j < costmap_width; j++){
+            cost_map[i][j] = msg->data[i*costmap_width + j] - '0';
             graph[i][j].set_state(i,j);
         }
     }

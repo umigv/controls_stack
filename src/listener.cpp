@@ -56,16 +56,29 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
     }
     std::cout << std::endl;
   }
-  std::cout << "Running A*..." << std::endl;
-  std::pair<int,int> start(0,0);
-  std::pair<int,int> end(3,3);
+  std::cout << "Running A*..." << std::endl << std::endl;
+  std::pair<int,int> start(msg->data[3]-'0', msg->data[4]-'0');
+  std::pair<int,int> end(msg->data[6]-'0', msg->data[7]-'0');
   // rpastar runner = rpastar::rpastar(start, end, &map);
   rpastar runner(start, end, &map);
   runner.search();
   std::vector<std::pair<int,int>> path = runner.backtracker();
-  for (int i = 0; i < path.size(); i++)
+  std::cout << "Path found!" << std::endl;
+  for (int i = 0; i < map.info.height; i++)
   {
-    std::cout << path[i].first << path[i].second << std::endl;
+    for (int j = 0; j < map.info.width; j++)
+    {
+      std::pair<int, int> pair(i,j);
+      if (std::find(path.begin(), path.end(), pair) != path.end())
+      {
+        std:: cout << "*  ";
+      }
+      else
+      {
+        std::cout << map.data[map.info.width*i + j] << "  ";
+      }
+    }
+    std::cout << std::endl;
   }
 
 }
@@ -80,7 +93,7 @@ nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg)
   int height = init_map[0]-'0';
   map.info.width = width;
   map.info.height = height;
-  init_map = init_map.substr(3);
+  init_map = init_map.substr(9);
   for (auto &val : init_map)
   {
     if (!(val == ',' || val == '[' || val == ']'))

@@ -23,7 +23,7 @@ class rpastar
             std::pair<int, int> state;
             Node *parent;
         public:
-            friend class GlobalPlanner
+            friend class GlobalPlanner;
             Node();
             Node(int row, int col,Node *parent);
             void set_h(std::pair<int,int> &target_state);
