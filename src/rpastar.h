@@ -64,6 +64,7 @@ class rpastar
         rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid* msg);
         void find_target();
         void search();
+        bool goal_found();
         std::vector<std::pair<int,int>> backtracker();
         void processNode(int x, int y, Node* parent);
         //void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
@@ -79,6 +80,7 @@ class rpastar
         std::map<std::pair<int,int>, float> closed_set;
         std::vector<std::vector<int>> cost_map;
         std::vector<std::vector<Node>> graph;
+        bool path_found;
         
 };
 

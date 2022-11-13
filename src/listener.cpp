@@ -31,17 +31,85 @@
 #include <vector>
 #include <string>
 #include "nav_msgs/OccupancyGrid.h"
+#include "nav_msgs/Odometry.h"
 #include "std_msgs/Header.h"
 #include "nav_msgs/MapMetaData.h"
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
 #include "rpastar.cpp"
 
 nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg);
 void chatterCallback(const std_msgs::String::ConstPtr& msg);
+void chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2);
 
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
+
+
+// %Tag(CALLBACK)%
+void chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2)
+{ 
+  nav_msgs::OccupancyGrid map = *msg1;
+  nav_msgs::Odometry pos = *msg2;
+  int pos_x = (int)((pos.pose.pose.position.x - map.info.origin.position.x) / map.info.resolution);
+  int pos_y = (int)((pos.pose.pose.position.y - map.info.origin.position.y) / map.info.resolution);
+  // for (int i = 0; i < map.info.height; i++)
+  // {
+  //   for (int j = 0; j < map.info.width; j++)
+  //   {
+  //     std::cout << map.data[map.info.width*i + j] << "  ";
+  //   }
+  //   std::cout << std::endl;
+  // }
+  std::cout << pos_x << " " << pos_y << std::endl;
+  std::cout << "Running A*..." << std::endl << std::endl;
+  std::pair<int,int> start(pos_x, pos_y);
+  std::pair<int,int> end(160, 250);
+  // rpastar runner = rpastar::rpastar(start, end, &map);
+  rpastar runner(start, end, &map);
+  runner.search();
+  if (runner.goal_found())
+  {
+    std::vector<std::pair<int,int>> path = runner.backtracker();
+    std::cout << "Path found!" << std::endl;
+    for (int i = 0; i < map.info.height; i++)
+    {
+      for (int j = 0; j < map.info.width; j++)
+      {
+        std::pair<int, int> pair(i,j);
+        if (std::find(path.begin(), path.end(), pair) != path.end())
+        {
+          std:: cout << " *  ";
+        }
+        else
+        {
+          if ((int)map.data[map.info.width*i + j] > 0)
+          {
+            std::cout << " 1  ";
+          }
+          else if ((int)map.data[map.info.width*i + j] == 0)
+          {
+            std::cout << " 0  ";
+          }
+          else
+          {
+            std::cout << (int)map.data[map.info.width*i + j] << "  ";
+          }
+        }
+      }
+      std::cout << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "No path found" << std::endl;
+
+  }
+}
+// %EndTag(CALLBACK)%
+
 // %Tag(CALLBACK)%
 void chatterCallback(const std_msgs::String::ConstPtr& msg)
 {
@@ -80,7 +148,6 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
     }
     std::cout << std::endl;
   }
-
 }
 // %EndTag(CALLBACK)%
 
@@ -145,6 +212,12 @@ int main(int argc, char **argv)
 // %Tag(SUBSCRIBER)%
   ros::Subscriber sub = n.subscribe("chatter", 1000, chatterCallback);
 // %EndTag(SUBSCRIBER)%
+
+  message_filters::Subscriber<nav_msgs::OccupancyGrid> map_sub(n, "map", 1);
+  message_filters::Subscriber<nav_msgs::Odometry> pos_sub(n, "odom", 1);
+  message_filters::TimeSynchronizer<nav_msgs::OccupancyGrid, nav_msgs::Odometry> sync(map_sub, pos_sub, 10);
+  sync.registerCallback(boost::bind(&chatterCallbackTurtleBot, _1, _2));
+
 
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all

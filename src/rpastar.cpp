@@ -67,8 +67,15 @@ void rpastar::find_target()
 
 }
 
+bool rpastar::goal_found()
+{
+    return path_found;
+}
+
+
 void rpastar::search()
 {
+    path_found = false;
     while (!U.empty())
     {
         Node current_node = U.top();
@@ -76,7 +83,7 @@ void rpastar::search()
         open_set.erase(current_node.get_state());
         if (current_node.at_target(target_state))
         {
-            
+            path_found = true;
             break;
         }
         int i = current_node.get_state().first;
