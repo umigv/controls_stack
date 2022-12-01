@@ -216,3 +216,7 @@ add_dependencies(talker startup_generate_messages_cpp)
 add_executable(listener src/listener.cpp)
 target_link_libraries(listener ${catkin_LIBRARIES})
 add_dependencies(listener startup_generate_messages_cpp)
+
+add_executable(goal_pub src/goal_pub.cpp)
+target_link_libraries(goal_pub ${catkin_LIBRARIES})
+add_dependencies(goal_pub startup_generate_messages_cpp)
