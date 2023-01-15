@@ -75,10 +75,12 @@ bool rpastar::goal_found()
 
 void rpastar::search()
 {
+    std::cout << "start search\n";
     path_found = false;
     while (!U.empty())
     {
         Node current_node = U.top();
+        std::cout << current_node.get_state().first << ", " << current_node.get_state().second << std::endl;
         U.pop();
         open_set.erase(current_node.get_state());
         if (current_node.at_target(target_state))
@@ -99,6 +101,8 @@ void rpastar::search()
         // processNode(i+1, j+1, &current_node); // south-west
         closed_set[current_node.get_state()] = current_node.get_f_score();
     }
+    std::cout << "end search\n";
+
 }
 
 void rpastar::processNode(int row, int col, Node *parent)
@@ -115,14 +119,14 @@ void rpastar::processNode(int row, int col, Node *parent)
     new_node.set_h(target_state);
     auto open_it = open_set.find(new_node.get_state());
     if(open_it != open_set.end()){
-        if (open_it->second < new_node.get_f_score())
+        if (open_it->second <= new_node.get_f_score())
         {
             return;
         }
     }
     auto closed_it = closed_set.find(new_node.get_state());
     if(closed_it != closed_set.end()){
-        if (closed_it->second < new_node.get_f_score())
+        if (closed_it->second <= new_node.get_f_score())
         {
             return;
         }

@@ -108,6 +108,7 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
   //   std::cout << std::endl;
   // }
   std::cout << pos_x << " " << pos_y << std::endl;
+  std::cout << goal_x << " " << goal_y << std::endl;
   std::cout << "Running A*..." << std::endl << std::endl;
   std::pair<int,int> start(pos_y, pos_x);
   std::pair<int,int> end(goal_y, goal_x);
@@ -115,6 +116,7 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
   rpastar runner(start, end, &map);
   runner.search();
   nav_msgs::Path nav_path;
+  std::cout << "back to callback\n";
   if (runner.goal_found())
   {
     std::vector<std::pair<int,int>> path = runner.backtracker();
