@@ -53,7 +53,7 @@ class Listener
 public:
   void chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2, const geometry_msgs::PoseStamped::ConstPtr& msg3);
   void generate_path(std::vector<std::pair<int,int>> path, const nav_msgs::OccupancyGrid::ConstPtr& map);
-  nav_msgs::Path get_path();
+  nav_msgs::Path get_path(); 
   geometry_msgs::PoseStamped get_goal();
 
 private:
@@ -69,8 +69,9 @@ nav_msgs::Path Listener::get_path()
 geometry_msgs::PoseStamped Listener::get_goal()
 {
   return goal_pose;
-}
+} 
 
+//go through the new old  path in the new  occpancy grid and see if there is 
 void Listener::generate_path(std::vector<std::pair<int,int>> path, const nav_msgs::OccupancyGrid::ConstPtr& map)
 {
   geometry_msgs::PoseStamped pose;
@@ -85,7 +86,7 @@ void Listener::generate_path(std::vector<std::pair<int,int>> path, const nav_msg
     nav_path.poses.push_back(pose);
   }
 }
-
+ 
 
 // %Tag(CALLBACK)%
 void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2,
