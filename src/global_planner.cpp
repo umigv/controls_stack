@@ -15,9 +15,9 @@ GlobalPlanner::GlobalPlanner(int height_in, int width_in)
     } // GlobalPlanner()
 
 
-GlobalPlanner::setPath(std::vector<std::pair<int,int>> path){
+void GlobalPlanner::setPath(std::vector<std::pair<int,int>> path){
     for(int i = 0 ; i < path.size() ; i ++){
-        Pair<int, int> c = path[i];
+        std::pair<int, int> c = path[i];
         path.push_back(c);
     }
     return;
@@ -25,9 +25,9 @@ GlobalPlanner::setPath(std::vector<std::pair<int,int>> path){
 
 
 bool GlobalPlanner::checkPath(std::vector<std::pair<int,int>> path){
-    for (auto currentPos: path) {
-      int x = currentPos.first();
-      int y = currentPos.second();
+    for (auto currentPos : path) {
+      int x = currentPos.first;
+      int y = currentPos.second;
       if (global_map[x][y] > threshold) {
         return false; //path not clear
       }

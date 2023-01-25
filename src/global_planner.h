@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-
+#include "nav_msgs/OccupancyGrid.h"
 #include <vector>
 
 
@@ -30,7 +30,7 @@ public:
   void updateGlobalMap(nav_msgs::OccupancyGrid local_map);
 
   // Returns true if the current path is still open; false if the current path is blocked by an obstacle
-  bool checkPath();
+  bool checkPath(std::vector<std::pair<int,int>> path);
 
   // Calculates path if necessary
 
