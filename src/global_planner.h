@@ -1,3 +1,5 @@
+#include "ros/ros.h"
+
 #include <vector>
 
 
@@ -5,19 +7,12 @@ static const int GLOBAL_HEIGHT = 1000;
 static const int GLOBAL_WIDTH = 1000;
 
 
-struct Coordinate {
-  int row;
-  int col;
-}; // struct Coordinate
-
-
-
 class GlobalPlanner {
 private: 
 
   std::vector<std::vector<int>> global_map; 
     
-  std::vector<Coordinate> path;
+  std::vector<std::pair<int, int>> path;
     
   int height;
 

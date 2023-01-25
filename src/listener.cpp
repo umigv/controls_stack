@@ -30,6 +30,7 @@
 #include "std_msgs/String.h"
 #include <vector>
 #include <string>
+#include "global_planner.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Header.h"
