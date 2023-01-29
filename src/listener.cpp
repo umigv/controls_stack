@@ -43,14 +43,12 @@
 #include "rpastar.cpp"
 
 
-static const int GLOBAL_HEIGHT = 1000;
-static const int GLOBAL_WIDTH = 1000;
 
 std::vector<std::pair<int, int>> waypoints = {{GLOBAL_HEIGHT -1, GLOBAL_WIDTH - 1}};
-
+  GlobalPlanner global_planner(GLOBAL_HEIGHT, GLOBAL_WIDTH, waypoints);
 
 nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg);
-void chatterCallback(const std_msgs::String::ConstPtr& msg);
+void chatterCallback(const std_msgs::String::ConstPtr& msg, GlobalPlanner &global_planner);
 nav_msgs::Path generate_path(std::vector<std::pair<int,int>> path);
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -173,7 +171,9 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
 {
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
   std::cout << "Occupancy Grid received:" << std::endl;
-  nav_msgs::OccupancyGrid map = process_array(msg);
+  //nav_msgs::OccupancyGrid map = process_array(msg);
+  nav_msgs::OccupancyGrid map = *(global_planner.getMap());
+
   
   for (int i = 0; i < map.info.height; i++)
   {
@@ -188,16 +188,19 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
   std::pair<int,int> end(msg->data[6]-'0', msg->data[7]-'0');
   // rpastar runner = rpastar::rpastar(start, end, &map);
 
+  std::vector<std::pair<int, int>> path;
   // CHECK MAP, TODO CHECK THIS 
   if(global_planner.checkPath() == false){
-     rpastar runner(start, end, &map);
+    rpastar runner(start, end, global_planner.getMap());
     runner.search();
     std::vector<std::pair<int,int>> path = runner.backtracker();
     std::cout << "Path found!" << std::endl;
+    global_planner.setPath(path);
   }
   else{
     std::cout << "Path already clear" << std::endl;
-    std::vector<std::pair<int,int>> path = global_planner.path();
+    path = global_planner.getPath();
+
   }
 
 
@@ -278,6 +281,9 @@ int main(int argc, char **argv)
    * is the number of messages that will be buffered up before beginning to throw
    * away the oldest ones.
    */
+
+   Listener listener;
+
 // %Tag(SUBSCRIBER)%
   ros::Subscriber sub = n.subscribe("chatter", 1000, chatterCallback);
   ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/NavfnROS/plan", 1000);
@@ -285,10 +291,9 @@ int main(int argc, char **argv)
 
 
 // %EndTag(SUBSCRIBER)%
-  Listener listener;
-  GlobalPlanner global_planner(GLOBAL_HEIGHT, GLOBAL_WIDTH, waypoints);
+ 
 
-  global_planner.updatePath();
+  //global_planner.updatePath();
 
   message_filters::Subscriber<nav_msgs::OccupancyGrid> map_sub(n, "map", 100);
   message_filters::Subscriber<nav_msgs::Odometry> pos_sub(n, "odom", 100);

@@ -3,7 +3,7 @@
 #include "rpastar.h"
 #include "cmath"
 
-static const int threshold = 0;
+static const int threshold = 50; //TODO change to value based on 0-100 range
 
 //default constructor
 //rpastar::Node::Node() : g_score(INFINITY), h_score(0) {}
