@@ -6,13 +6,18 @@
 static const int GLOBAL_HEIGHT = 1000;
 static const int GLOBAL_WIDTH = 1000;
 
+static const std::pair<int, int> goal = {999, 999};
+static const std::pair<int, int> start = {0, 0};
+
 
 class GlobalPlanner {
 private: 
 
-  std::vector<std::vector<int>> global_map; 
+  nav_msgs::OccupancyGrid global_map; 
     
   std::vector<std::pair<int, int>> path;
+
+  std::vector<std::pair<int, int>> waypoints;
     
   int height;
 
@@ -21,10 +26,9 @@ private:
 public:
 
   // Ctor
-  GlobalPlanner(int height_in, int width_in);
+  GlobalPlanner(int height_in, int width_in, std::vector<std::pair<int, int>> waypoints_in);
 
 
-  void setPath(std::vector<std::pair<int,int>> path);
 
   // Fits incoming local_map into global_map
   void updateGlobalMap(nav_msgs::OccupancyGrid local_map);
