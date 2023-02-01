@@ -4,7 +4,6 @@
 #include <vector>
 #include <fstream>
 #include "sensor_msgs/NavSatFix.h"
-// https://prod.liveshare.vsengsaas.visualstudio.com/join?3DD46D3FFE03E218255869499D65EBD61DEB
 
 
 class GPSdata {
