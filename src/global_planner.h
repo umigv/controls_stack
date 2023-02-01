@@ -45,6 +45,7 @@ public:
   // .at() abstracts indexing into the occupancy grid
   int8_t& at(int row, int col);
 
+
   void setPath(const std::vector<std::pair<int, int>>& path_in);
 
 private:

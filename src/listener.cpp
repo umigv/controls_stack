@@ -30,7 +30,7 @@
 #include "std_msgs/String.h"
 #include <vector>
 #include <string>
-#include "global_planner.h"
+#include "global_planner.cpp"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Header.h"
@@ -64,7 +64,7 @@ public:
 
 private:
   nav_msgs::Path nav_path;
-  geometry_msgs::PoseStamped goal_pose;
+  geometry_msgs::PoseStamped goal_pose; 
 };
 
 nav_msgs::Path Listener::get_path()
@@ -97,8 +97,11 @@ void Listener::generate_path(std::vector<std::pair<int,int>> path, const nav_msg
 // %Tag(CALLBACK)%
 void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2,
                                         const geometry_msgs::PoseStamped::ConstPtr& msg3)
+
 { 
+  std::cout<<"TURTLE ???" << std::endl;
   nav_msgs::OccupancyGrid map = *msg1;
+
   nav_msgs::Odometry pos = *msg2;
   goal_pose = *msg3;
   int pos_x = (int)((pos.pose.pose.position.x - map.info.origin.position.x) / map.info.resolution);
@@ -171,8 +174,9 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
 {
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
   std::cout << "Occupancy Grid received:" << std::endl;
-  //nav_msgs::OccupancyGrid map = process_array(msg);
-  nav_msgs::OccupancyGrid map = *(global_planner.getMap());
+  nav_msgs::OccupancyGrid map = process_array(msg);
+  global_planner.updateGlobalMap(map);
+   map = *(global_planner.getMap());
 
   
   for (int i = 0; i < map.info.height; i++)
@@ -190,7 +194,7 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
 
   std::vector<std::pair<int, int>> path;
   // CHECK MAP, TODO CHECK THIS 
-  if(global_planner.checkPath() == false){
+  if(!global_planner.checkPath()){
     rpastar runner(start, end, global_planner.getMap());
     runner.search();
     std::vector<std::pair<int,int>> path = runner.backtracker();
@@ -285,7 +289,7 @@ int main(int argc, char **argv)
    Listener listener;
 
 // %Tag(SUBSCRIBER)%
-  ros::Subscriber sub = n.subscribe("chatter", 1000, chatterCallback);
+  ros::Subscriber sub = n.subscribe("chatter", 1000, chatterCallback);  //
   ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/NavfnROS/plan", 1000);
   ros::Publisher goal_pub = n.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 1000);
 

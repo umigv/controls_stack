@@ -221,6 +221,4 @@ add_executable(goal_pub src/goal_pub.cpp)
 target_link_libraries(goal_pub ${catkin_LIBRARIES})
 add_dependencies(goal_pub startup_generate_messages_cpp)
 
-add_executable(global_static_planner src/global_static_planner.cpp)
-target_link_libraries(global_static_planner ${catkin_LIBRARIES})
-add_dependencies(goal_pub startup_generate_messages_cpp)
+
