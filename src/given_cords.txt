@@ -1,9 +1,9 @@
-//cord 1 (lat first, long second)
-
-//cord 2
-
-//cord 3
+//cord 5 (lat first, long second)
 
 //cord 4
 
-//cord 5
+//cord 3
+
+//cord 2
+
+//cord 1

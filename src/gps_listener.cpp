@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include "sensor_msgs/NavSatFix.h"
 
 
@@ -14,7 +15,6 @@ class GPSdata {
         // Subscribing to the topic /NavSAtFix
         gps_sub = nh_.subscribe("/gps/fix", 100, gpsCallback);
     }
-
     // Callback Function for the GPS
     private:
 
@@ -71,7 +71,18 @@ void set_const_cords(std::vector<LongLatStorage>& given_gps_point){
         }
     }
 }
-/*
+
+// struct for intaking the two coordinate pairs to publish
+// self is the current coord for the robot
+// goal is the next constant + defined coord set by the competition
+struct cordPairs{
+    
+    cordPairs(int selfx, int selfy, int goalx, int goaly)
+    :self.first(selfx), self.second(selfy), goal.first(goalx), goal.second(goaly){}
+    std::pair<int, int> self;
+    std::pair<int, int> goal;
+}
+
 void gps_transform(GPSdata& gps){
    
    
@@ -82,7 +93,7 @@ void gps_transform(GPSdata& gps){
 
    //GPSdata.latitude    
 }
-*/
+
 
 int main(int argc, char **argv) {
 
@@ -103,20 +114,51 @@ int main(int argc, char **argv) {
     double gpsLat = 0;
     double gpsLong = 0;
 
+    // Publisher file (NEED LOTTA REVIEW BEFORE GOING PUBLIC)
+
+
+    // fix name later
+    ros::init(argc, argv, "talker");
+
+    // publishing node (change name later if needed)
+    ros::Nodehandle gps_publisher_node;
+
+    // need publisher type changed + change the buffer size bc Idk how long we'll 
+    //Need to figure out how to publish a custom message type for struct.
+    ros::Publisher gps_talker_pub = gps_publisher_node.advertise<cordPairs>("gps_talker_topic", 10000);
+
     ros::Rate rate(10);
     while(ros::ok()) {
 
-      gpsLong = gps_node->gpsMsg.longitude;
-      gpsLat = gps_node->gpsMsg.latitude;
+
+        // GPS Transform part (Subscribing)
+        gpsLong = gps_node->gpsMsg.longitude;
+        gpsLat = gps_node->gpsMsg.latitude;
+    
+        // gps_transform(gps_node);
+        ROS_INFO("Current Latitude: %f", gpsLat);
+        ROS_INFO("Current Longitude: %f", gpsLong);
 
 
-    //   gps_transform(gps_node);
 
-      ROS_INFO("Current Latitude: %f", gpsLat);
-      ROS_INFO("Current Longitude: %f", gpsLong);
+        // Publighing part AND YES I KNOW THE STYLE IS A 0/10 BUT WE WILL FIX IT EVENTUALLY^TM
+        
+        // change this as we are storing the "custom data" that we will be making
+        std_msgs::String msg;
+        
+        // change this as well to new custom data
+        std::stringstream gps_output;
+
+        // CHANGE THIS TO THE NEW TYPE BEING PUBLISHED AFTER WE MAKE THE STRUCT/CLASS
+        gps_output.data = ss.str();
+
+        // change the aprameter in .publish after custom data type is made
+        gps_talker_pub.publish(msg);
+
+        // change this too
+        ROS_INFO("Published message: ",gps_output.data = ss.str());
 
         spinOnce();
         rate.sleep();
     }
 
-}
