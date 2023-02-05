@@ -4,29 +4,37 @@
 #include "global_planner.h"
 #include "rpastar.h"
 
-// TODO Need_further_discussion_on_the_threshold
-static const int thresh = 0; 
+
 
 
 GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std::pair<int, int>> & waypoints_in) 
         : height{height_in}, width{width_in}, waypoints(waypoints_in) { 
         // Fills global map with -1s to start
-        std::cout<<"gp ctor"<< std::endl;
+        std::cout<<"gp ctor" << width << std::endl;
         global_map.info.width = width;
         global_map.info.height = height;
         
         for(int i = 0; i < height; ++i) {
           for(int j = 0; j < width; ++j) {
-            this->at(i, j) = -1;
+            global_map.data.push_back(-1);
 
           }
         }
 
-        
-        
         //init path straight to goal
-        rpastar runner(start, goal, &global_map);
-                       std::cout<<"gp ctor end"<< std::endl;
+
+        rpastar runner(start, waypoints[0], &global_map);
+        runner.search();
+        std::vector<std::pair<int,int>> init_path = runner.backtracker();
+        path = init_path;
+        std::cout<< " printing path in gp ctor " << std::endl;
+
+     for(auto i : path ) {
+  
+    std::cout<<i.first<< " " << i.second << std::endl;
+    }
+
+        std::cout<<"gp ctor end"<< std::endl;
 
     } // GlobalPlanner()
 
@@ -39,13 +47,26 @@ GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std:
 
 //goes through the path and checks if its its clear 
 bool GlobalPlanner::checkPath(){
+      std::cout<< " printing path in check path " << std::endl;
+
+     for(auto i : path ) {
+  
+      std::cout<<i.first<< " " << i.second << std::endl;
+      }
+
+    std::cout << "checking path...\n";
     for (auto currentPos : path) {
       int row = currentPos.first;
       int col = currentPos.second;
-      if (this->at(row, col) > thresh) {
+      int8_t check = this->at(row, col);
+      std::cout << "  occpancy grid " << check << std::endl;
+      std::cout << "  threshold  grid " << threshold << std::endl;
+      if (check != threshold) {
+        std::cout << "path not clear\n";
         return false; //path not clear
       }
     }
+    std::cout << "path clear\n";
     return true; //path is clear
 }
 
@@ -68,7 +89,8 @@ double GlobalPlanner::cost_path(){
 
 //returns a reference to a point o
 int8_t& GlobalPlanner::at(int row, int col) {
-    int x = (row* width )+ col;
+    std::cout << "idk," << row << " " << col << std::endl;
+    int x = (row*width )+ col;
     return global_map.data.at(x);
   }
 

@@ -1,12 +1,12 @@
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "constants.h"
 #include <vector>
 
 
-static const int GLOBAL_HEIGHT = 1000;
-static const int GLOBAL_WIDTH = 1000;
 
-static const std::pair<int, int> goal = {999, 999};
+
+static const std::pair<int, int> goal = {2, 2};
 static const std::pair<int, int> start = {0, 0};
 
 

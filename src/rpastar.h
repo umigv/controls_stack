@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include "nav_msgs/OccupancyGrid.h"
+#include "constants.h"
 
 
 class rpastar

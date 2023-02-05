@@ -3,7 +3,6 @@
 #include "rpastar.h"
 #include "cmath"
 
-static const int threshold = 50; //TODO change to value based on 0-100 range
 
 //default constructor
 //rpastar::Node::Node() : g_score(INFINITY), h_score(0) {}
@@ -55,7 +54,8 @@ bool rpastar::Node::at_target(std::pair<int,int> &target_state)
 }
 
 
-rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid * msg) : start_state(start_state_in), target_state(target_state_in)
+rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid * msg) 
+    : start_state(start_state_in), target_state(target_state_in)
 {
     //these are in the a* old implementation but don't think we need them as they are called in subscribe in listener.cpp
     // gpsCall();
@@ -80,7 +80,7 @@ void rpastar::search()
     while (!U.empty())
     {
         Node current_node = U.top();
-        std::cout << current_node.get_state().first << ", " << current_node.get_state().second << std::endl;
+        // std::cout << current_node.get_state().first << ", " << current_node.get_state().second << std::endl;
         U.pop();
         open_set.erase(current_node.get_state());
         if (current_node.at_target(target_state))
@@ -141,6 +141,7 @@ void rpastar::processNode(int row, int col, Node *parent)
 void rpastar::costMapCallback(nav_msgs::OccupancyGrid* msg)
 {
 	// Fill out the costmap width and height from the occupancy grid info message
+    std::cout << "msg->info.width: " << msg->info.width << "\n";
     int costmap_width = msg->info.width;
     int costmap_height = msg->info.height;
     
