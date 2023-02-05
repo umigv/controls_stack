@@ -14,7 +14,7 @@ class GPSdata {
 
     GPSdata(ros::NodeHandle nh_) {
         // Subscribing to the topic /NavSAtFix
-        gps_sub = nh_.subscribe("/gps/fix", 100, gpsCallback);
+        gps_sub = nh_.subscribe("/gps/fix", 100, &gpsCallback, this);
     }
     // Callback Function for the GPS
     private:
