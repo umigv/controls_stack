@@ -22,7 +22,7 @@ class GPSdata {
     // Subscriber
     ros::Subscriber gps_sub;
 
-    static void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
+    void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
         // might need to fix this later
         gpsMsg = *msg;
         ROS_INFO("GPS: %f, %f", msg->latitude, msg->longitude);
