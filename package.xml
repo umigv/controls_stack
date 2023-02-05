@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>startup</name>
+  <name>gps_transform</name>
   <version>0.0.0</version>
   <description>The startup package</description>
 

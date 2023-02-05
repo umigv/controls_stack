@@ -6,10 +6,11 @@
 #include <sstream>
 #include "sensor_msgs/NavSatFix.h"
 
+using std::string;
 
 class GPSdata {
     public:
-    gps_common::GPSFix gpsMsg;
+    sensor_msgs::NavSatFix gpsMsg;
 
     GPSdata(ros::NodeHandle nh_) {
         // Subscribing to the topic /NavSAtFix
@@ -21,7 +22,7 @@ class GPSdata {
     // Subscriber
     ros::Subscriber gps_sub;
 
-    void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
+    static void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
         // might need to fix this later
         // ROS_INFO("GPS: %f, %f", msg->latitude, msg->longitude);
         return;
@@ -31,16 +32,20 @@ class GPSdata {
 
 //For constant gps points
 struct LongLatStorage{
-   //LongLatStorage(double in_long, double in_lat)
-   //:longitude{in_long}, latitude{in_lat}
-   const double longitude;
-   const double latitude;
-} 
+    LongLatStorage(double in_long, double in_lat)
+        :longitude(in_long), latitude(in_lat){}
+    LongLatStorage()
+        : longitude(0.0), latitude(0.0) {}
+    double longitude;
+    double latitude;
+};
 
+
+/**/
 //Requires: given gps format is latitude then longitude
 void set_const_cords(std::vector<LongLatStorage>& given_gps_point){
-    string data;
-    fstream cord_in;
+    std::string data;
+    std::fstream cord_in;
     cord_in.open("given_cords.txt");
     if (!cord_in.is_open()) {
     // Possibly need to adjust
@@ -50,7 +55,7 @@ void set_const_cords(std::vector<LongLatStorage>& given_gps_point){
     LongLatStorage in_cord;
     while (cord_in >> data) {
         if (data.at(0) == '/') {
-            string junk;
+            std::string junk;
             getline(cord_in, junk);
         }
         else if (count == 0) {
@@ -58,11 +63,11 @@ void set_const_cords(std::vector<LongLatStorage>& given_gps_point){
             count++;
         }
         else if (count == 1) {
-            in_cord.longtitude = stod(data);
+            in_cord.longitude = stod(data);
 
             // adds the longtitude data to the vector
-            give_gps_point.pushback();
-      
+            given_gps_point.push_back(in_cord);
+
             // resets
             count = 0;
         }
@@ -78,20 +83,14 @@ void set_const_cords(std::vector<LongLatStorage>& given_gps_point){
 struct cordPairs{
     
     cordPairs(int selfx, int selfy, int goalx, int goaly)
-    :self.first(selfx), self.second(selfy), goal.first(goalx), goal.second(goaly){}
+    :self(selfx, selfy), goal(goalx, goaly){}
     std::pair<int, int> self;
     std::pair<int, int> goal;
-}
+};
 
 void gps_transform(GPSdata& gps){
-   
-   
-   double updated_longtitude = 0;
-   double updated_latitude = 0;
-   
-   GPSdata.longitude * 111 *  
-
-   //GPSdata.latitude    
+    double updated_longtitude = 0;
+    double updated_latitude = 0;   
 }
 
 
@@ -121,19 +120,19 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "talker");
 
     // publishing node (change name later if needed)
-    ros::Nodehandle gps_publisher_node;
+    ros::NodeHandle gps_publisher_node;
 
     // need publisher type changed + change the buffer size bc Idk how long we'll 
     //Need to figure out how to publish a custom message type for struct.
-    ros::Publisher gps_talker_pub = gps_publisher_node.advertise<cordPairs>("gps_talker_topic", 10000);
+    // ros::Publisher gps_talker_pub = gps_publisher_node.advertise<cordPairs>("gps_talker_topic", 10000);
 
     ros::Rate rate(10);
     while(ros::ok()) {
 
 
         // GPS Transform part (Subscribing)
-        gpsLong = gps_node->gpsMsg.longitude;
-        gpsLat = gps_node->gpsMsg.latitude;
+        gpsLong = gps_node.gpsMsg.longitude;
+        gpsLat = gps_node.gpsMsg.latitude;
     
         // gps_transform(gps_node);
         ROS_INFO("Current Latitude: %f", gpsLat);
@@ -144,21 +143,26 @@ int main(int argc, char **argv) {
         // Publighing part AND YES I KNOW THE STYLE IS A 0/10 BUT WE WILL FIX IT EVENTUALLY^TM
         
         // change this as we are storing the "custom data" that we will be making
-        std_msgs::String msg;
+        string msg;
         
         // change this as well to new custom data
         std::stringstream gps_output;
 
         // CHANGE THIS TO THE NEW TYPE BEING PUBLISHED AFTER WE MAKE THE STRUCT/CLASS
-        gps_output.data = ss.str();
+        // gps_output.data = ss.str();
+        // msg >> gps_output;
+        string temp;
+        gps_output >> temp;
 
         // change the aprameter in .publish after custom data type is made
-        gps_talker_pub.publish(msg);
+        // gps_talker_pub.publish(msg);
 
         // change this too
-        ROS_INFO("Published message: ",gps_output.data = ss.str());
+        ROS_INFO("Published message:");
+        // ROS_INFO(temp);
 
-        spinOnce();
+        ros::spinOnce();
         rate.sleep();
     }
 
+}
