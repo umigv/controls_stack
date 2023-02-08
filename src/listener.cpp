@@ -175,10 +175,10 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
   std::cout << "Occupancy Grid received:" << std::endl;
   nav_msgs::OccupancyGrid map = process_array(msg);
-  std::cout << "new map height" << map.info.height << std::endl;
-  std::cout << "process array finished\n";
+  // std::cout << "new map height" << map.info.height << std::endl;
+  // std::cout << "process array finished\n";
   global_planner.updateGlobalMap(map);
-  std::cout << "height: " << map.info.height << "\n";
+  // std::cout << "height: " << map.info.height << "\n";
 
   
   // for (int i = 0; i < map.info.height; i++)
@@ -189,7 +189,7 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
   //   }
   //   std::cout << std::endl;
   // }
-  std::cout << "Running A*..." << std::endl << std::endl;
+  // std::cout << "Running A*..." << std::endl << std::endl;
   std::pair<int,int> start(msg->data[3]-'0', msg->data[5]-'0');
   std::pair<int,int> end(msg->data[6]-'0', msg->data[8]-'0');
   // rpastar runner = rpastar::rpastar(start, end, &map);
@@ -197,13 +197,13 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
   std::vector<std::pair<int, int>> path2;
   // CHECK MAP, TODO CHECK THIS 
   if(!global_planner.checkPath()){
-    std::cout << "Sending the following to runner " << std::endl;
-    std::cout <<" end " << end.first<< " " << end.second << " start " << start.first << " " << start.second << std::endl;
+    // std::cout << "Sending the following to runner " << std::endl;
+    // std::cout <<" end " << end.first<< " " << end.second << " start " << start.first << " " << start.second << std::endl;
     rpastar runner(start, end, global_planner.getMap());
 
-    std::cout << "initiliazed runner\n";
+    // std::cout << "initiliazed runner\n";
     runner.search();
-    std::cout << "searched\n";
+    // std::cout << "searched\n";
     path2 = runner.backtracker();
 
  
@@ -212,7 +212,7 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
     global_planner.setPath(path2);
     
   }
-  else{
+  else {
     std::cout << "Path already clear" << std::endl;
     path2 = global_planner.getPath();
 
@@ -246,17 +246,17 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
 
 nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg)
 {
-  std::cout <<  " the message "  << *msg << std::endl;
+  // std::cout <<  " the message "  << *msg << std::endl;
   std::string init_map = msg->data;
   std::vector<signed char> vec;
   nav_msgs::OccupancyGrid map;
   int width = init_map[0]-'0';
   int height = init_map[2]-'0';
-  std::cout << "width and height\n";
+  // std::cout << "width and height\n";
   map.info.width = width;
   map.info.height = height;
   init_map = init_map.substr(9);
-  std::cout << "substr()\n";
+  // std::cout << "substr()\n";
   for (auto &val : init_map)
   {
     if (!(val == ',' || val == '[' || val == ']'))

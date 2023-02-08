@@ -6,11 +6,10 @@
 
 
 
-
 GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std::pair<int, int>> & waypoints_in) 
         : height{height_in}, width{width_in}, waypoints(waypoints_in) { 
         // Fills global map with -1s to start
-        std::cout<<"gp ctor" << width << std::endl;
+        // std::cout<<"gp ctor" << width << std::endl;
         global_map.info.width = width;
         global_map.info.height = height;
         
@@ -27,14 +26,14 @@ GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std:
         runner.search();
         std::vector<std::pair<int,int>> init_path = runner.backtracker();
         path = init_path;
-        std::cout<< " printing path in gp ctor " << std::endl;
+        // std::cout<< " printing path in gp ctor " << std::endl;
 
      for(auto i : path ) {
   
     std::cout<<i.first<< " " << i.second << std::endl;
     }
 
-        std::cout<<"gp ctor end"<< std::endl;
+      //  std::cout<<"gp ctor end"<< std::endl;
 
     } // GlobalPlanner()
 
@@ -59,8 +58,9 @@ bool GlobalPlanner::checkPath(){
       int row = currentPos.first;
       int col = currentPos.second;
       int8_t check = this->at(row, col);
-      std::cout << "  occpancy grid " << check << std::endl;
-      std::cout << "  threshold  grid " << threshold << std::endl;
+      check = check - '0'; // we subtracted '0' from check because check is an signed char, 
+      // std::cout << "  occpancy grid " << std::to_string(check) << std::endl;
+      // std::cout << "  threshold  grid " << std::to_string(threshold )<< std::endl;
       if (check != threshold) {
         std::cout << "path not clear\n";
         return false; //path not clear
@@ -89,7 +89,7 @@ double GlobalPlanner::cost_path(){
 
 //returns a reference to a point o
 int8_t& GlobalPlanner::at(int row, int col) {
-    std::cout << "idk," << row << " " << col << std::endl;
+   // std::cout << "at ," << row << " " << col << std::endl;
     int x = (row*width )+ col;
     return global_map.data.at(x);
   }
@@ -104,3 +104,11 @@ std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
 
 
 #endif
+
+
+// 5 54,40,0[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+// 5 54,40,0[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+// 5 54,40,0[0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0]
+// 5 54,40,0[0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0]
+// 5 54,40,0[0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0]
+// 5 54,40,0[0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,0,0]
