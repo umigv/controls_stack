@@ -76,98 +76,15 @@ double get_angle_between_points(std::pair<double, double> current, std::pair<dou
     double return_angle;
     double change_to_degree = (180 / 3.1415926);
 
-    // Quandrant 1. x_diff > 0 and y_diff > 0
-    if (lat_diff > 0 && long_diff > 0)
-    {
-        // Final angle = calculated angle
-        return_angle = atan(long_diff / lat_diff) * change_to_degree;
+    float angle_supplement = long_diff >= 0 ? 0 : 180;
+    if (lat_diff == 0) {
+        return long_diff > 0 ? 0 : 180;
     }
-    // Quandrant 4. x_diff > 0 and y_diff < 0
-    else if (lat_diff > 0 && long_diff < 0)
-    {
-        // Final angle = calculated angle + 90
-        return_angle = atan(long_diff / lat_diff) * change_to_degree + 90;
-    }
-    // Quandrant 3. x_diff < 0 and y_diff < 0
-    else if (lat_diff < 0 && long_diff < 0)
-    {
-        // Final angle = calculated angle + 180
-        return_angle = atan(long_diff / lat_diff) * change_to_degree + 180;
-    }
-    // Quandrant 2. x_diff < 0 and y_diff > 0
-    else if (lat_diff < 0 && long_diff > 0)
-    {
-        // Final angle = calculated angle + 270
-        return_angle = atan(long_diff / lat_diff) * change_to_degree + 270;
-    }
-    // Edge case 1 (0/360 degrees). x_diff == 0 and y_diff > 0
-    else if ((lat_diff == 0) && (long_diff > 0))
-    {
-        return_angle = 0;
-    }
-    // Edge case 2 (90 degrees). x_diff > 0 and y_diff == 0
-    else if (lat_diff > 0 && (long_diff == 0))
-    {
-        return_angle = 90;
-    }
-    // Edge case 3 (180 degrees). x_diff == 0 and y_diff < 0
-    else if ((lat_diff == 0) && (long_diff < 0))
-    {
-        return_angle = 180;
-    }
-    // Edge case 4 (270 degrees). x_diff < 0 and y_diff == 0
-    else if ((lat_diff < 0) && (long_diff == 0))
-    {
-        return_angle = 270;
-    }
-    else
-    {
-        exit(1);
+    double return_angle = atan(long_diff / lat_diff) * change_to_degree + angle_supplement;
+    if (return_angle < 0) {
+        return_angle += 360;
     }
     return return_angle;
-}
-
-/**/
-// Requires: given gps format is latitude then longitude
-void set_const_cords(std::vector<LongLatStorage> &given_gps_point)
-{
-    std::string data;
-    std::fstream cord_in;
-    cord_in.open("given_cords.txt");
-    if (!cord_in.is_open())
-    {
-        // Possibly need to adjust
-        exit(1);
-    }
-    int count = 0;
-    LongLatStorage in_cord;
-    while (cord_in >> data)
-    {
-        if (data.at(0) == '/')
-        {
-            std::string junk;
-            getline(cord_in, junk);
-        }
-        else if (count == 0)
-        {
-            in_cord.latitude = stod(data);
-            count++;
-        }
-        else if (count == 1)
-        {
-            in_cord.longitude = stod(data);
-
-            // adds the longtitude data to the vector
-            given_gps_point.push_back(in_cord);
-
-            // resets
-            count = 0;
-        }
-        else
-        {
-            exit(1);
-        }
-    }
 }
 
 // struct for intaking the two coordinate pairs to publish
