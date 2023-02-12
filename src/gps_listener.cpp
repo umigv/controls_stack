@@ -44,37 +44,37 @@ struct LongLatStorage
     double latitude;
 };
 
-float get_distance_between_points(std::pair<float, float> current, std::pair<float, float> target)
+double get_distance_between_points(std::pair<double, double> current, std::pair<double, double> target)
 {
     // Coordinates are in <lat, long> pairs
     // lat is x and long is y
-    float curr_lat = current.first;
-    float curr_long = current.second;
-    float target_lat = target.first;
-    float target_long = target.second;
+    double curr_lat = current.first;
+    double curr_long = current.second;
+    double target_lat = target.first;
+    double target_long = target.second;
 
-    float lat_diff = target_lat - curr_lat;    // Think of it as x diff
-    float long_diff = target_long - curr_long; // Think of it as y diff
+    double lat_diff = target_lat - curr_lat;    // Think of it as x diff
+    double long_diff = target_long - curr_long; // Think of it as y diff
 
     // The distance is not in meters. It is based on GPS coordinates.
     return (sqrt(pow(lat_diff, 2) + pow(long_diff, 2)));
 }
 
 // returns angle
-float get_angle_between_points(std::pair<float, float> current, std::pair<float, float> target)
+double get_angle_between_points(std::pair<double, double> current, std::pair<double, double> target)
 {
     // Coordinates are in <lat, long> pairs
     // lat is x and long is y
-    float curr_lat = current.first;
-    float curr_long = current.second;
-    float target_lat = target.first;
-    float target_long = target.second;
+    double curr_lat = current.first;
+    double curr_long = current.second;
+    double target_lat = target.first;
+    double target_long = target.second;
 
-    float lat_diff = target_lat - curr_lat;    // Think of it as x diff
-    float long_diff = target_long - curr_long; // Think of it as y diff
+    double lat_diff = target_lat - curr_lat;    // Think of it as x diff
+    double long_diff = target_long - curr_long; // Think of it as y diff
 
-    float return_angle;
-    float change_to_degree = (180 / 3.1415926);
+    double return_angle;
+    double change_to_degree = (180 / 3.1415926);
 
     // Quandrant 1. x_diff > 0 and y_diff > 0
     if (lat_diff > 0 && long_diff > 0)
