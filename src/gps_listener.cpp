@@ -76,15 +76,12 @@ double get_angle_between_points(std::pair<double, double> current, std::pair<dou
     double return_angle;
     double change_to_degree = (180 / 3.1415926);
 
-    float angle_supplement = long_diff >= 0 ? 0 : 180;
+    double angle_supplement = long_diff >= 0 ? 0 : 180;
     if (lat_diff == 0) {
         return long_diff > 0 ? 0 : 180;
     }
     double return_angle = atan(long_diff / lat_diff) * change_to_degree + angle_supplement;
-    if (return_angle < 0) {
-        return_angle += 360;
-    }
-    return return_angle;
+    return return_angle < 0 ? return_angle + 360 : return_angle;
 }
 
 // struct for intaking the two coordinate pairs to publish
