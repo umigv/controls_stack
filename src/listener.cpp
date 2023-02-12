@@ -45,10 +45,13 @@
 
 
 std::vector<std::pair<int, int>> waypoints = {{GLOBAL_HEIGHT -1, GLOBAL_WIDTH - 1}};
-  GlobalPlanner global_planner(GLOBAL_HEIGHT, GLOBAL_WIDTH, waypoints);
+
+GlobalPlanner global_planner(GLOBAL_HEIGHT, GLOBAL_WIDTH, waypoints);
 
 nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg);
+
 void chatterCallback(const std_msgs::String::ConstPtr& msg, GlobalPlanner &global_planner);
+
 nav_msgs::Path generate_path(std::vector<std::pair<int,int>> path);
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -170,10 +173,13 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
 // %EndTag(CALLBACK)%
 
 // %Tag(CALLBACK)%
-void chatterCallback(const std_msgs::String::ConstPtr& msg)
+void chatterCallback(const std_msgs::String::ConstPtr& msg )
 {
+  // Updates current pose and map
+
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
   std::cout << "Occupancy Grid received:" << std::endl;
+  // Eventually this will be done in updateGlobalMap:
   nav_msgs::OccupancyGrid map = process_array(msg);
   // std::cout << "new map height" << map.info.height << std::endl;
   // std::cout << "process array finished\n";
@@ -190,12 +196,13 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
   //   std::cout << std::endl;
   // }
   // std::cout << "Running A*..." << std::endl << std::endl;
-  std::pair<int,int> start(msg->data[3]-'0', msg->data[5]-'0');
-  std::pair<int,int> end(msg->data[6]-'0', msg->data[8]-'0');
+  std::pair<int,int> start = global_planner.getPose();
+  std::pair<int,int> end = global_planner.getGoal();
   // rpastar runner = rpastar::rpastar(start, end, &map);
 
-  std::vector<std::pair<int, int>> path2;
+  std::vector<std::pair<int, int>> new_path;
   // CHECK MAP, TODO CHECK THIS 
+
   if(!global_planner.checkPath()){
     // std::cout << "Sending the following to runner " << std::endl;
     // std::cout <<" end " << end.first<< " " << end.second << " start " << start.first << " " << start.second << std::endl;
@@ -204,23 +211,23 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
     // std::cout << "initiliazed runner\n";
     runner.search();
     // std::cout << "searched\n";
-    path2 = runner.backtracker();
+    new_path = runner.backtracker();
 
  
 
     std::cout << "Path found!" << std::endl;
-    global_planner.setPath(path2);
+    global_planner.setPath(new_path);
     
   }
   else {
     std::cout << "Path already clear" << std::endl;
-    path2 = global_planner.getPath();
+    new_path = global_planner.getPath();
 
   }
 
   std::cout<< " printing path " << std::endl;
 
-     for(auto i : path2 ) {
+     for(auto i : new_path ) {
     std::cout<<i.first<< " " << i.second << std::endl;
     }
 
@@ -230,7 +237,7 @@ void chatterCallback(const std_msgs::String::ConstPtr& msg)
     for (int j = 0; j < map.info.width; j++)
     {
       std::pair<int, int> pair(i,j);
-      if (std::find(path2.begin(), path2.end(), pair) != path2.end())
+      if (std::find(new_path.begin(), new_path.end(), pair) != new_path.end())
       {
         std:: cout << "*  ";
       }
@@ -255,6 +262,17 @@ nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg)
   // std::cout << "width and height\n";
   map.info.width = width;
   map.info.height = height;
+
+  int start_f = init_map[3] -'0';
+  int start_s = init_map[5] -'0';
+  std::pair<int, int> setP = {start_f, start_s};
+  global_planner.setPose(setP);
+
+  int goal_f = init_map[6] - '0';
+  int goal_s = init_map[8] - '0';
+  std::pair<int, int> setG = {goal_f, goal_s};
+  global_planner.setGoal(setG);
+
   init_map = init_map.substr(9);
   // std::cout << "substr()\n";
   for (auto &val : init_map)
@@ -265,7 +283,7 @@ nav_msgs::OccupancyGrid process_array(const std_msgs::String::ConstPtr& msg)
     }
   }
   map.data = vec;
-
+  
   return map;
 }
 
@@ -305,7 +323,11 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
 
-   Listener listener;
+  Listener listener;
+
+
+  // Get waypoints from service, set global_planner waypoints 
+
 
 // %Tag(SUBSCRIBER)%
   std::cout << "Before callback\n"; 

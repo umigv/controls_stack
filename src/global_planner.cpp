@@ -22,15 +22,10 @@ GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std:
 
         //init path straight to goal
 
-        rpastar runner(start, waypoints[0], &global_map);
-        runner.search();
-        std::vector<std::pair<int,int>> init_path = runner.backtracker();
-        path = init_path;
         // std::cout<< " printing path in gp ctor " << std::endl;
 
      for(auto i : path ) {
-  
-    std::cout<<i.first<< " " << i.second << std::endl;
+      std::cout<<i.first<< " " << i.second << std::endl;
     }
 
       //  std::cout<<"gp ctor end"<< std::endl;
@@ -46,6 +41,11 @@ GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std:
 
 //goes through the path and checks if its its clear 
 bool GlobalPlanner::checkPath(){
+      // If the path is empty, return false so we calculate an initial path
+      if(path.empty()) {
+        return false;
+      }
+
       std::cout<< " printing path in check path " << std::endl;
 
      for(auto i : path ) {
@@ -79,12 +79,30 @@ double GlobalPlanner::cost_path(){
 }
 
   void GlobalPlanner::updateGlobalMap(nav_msgs::OccupancyGrid local_map){
-    
+    // Get map and current pose from Ben's node
+
+
+
     global_map = local_map; 
     return;
   }
 
 
+  std::pair<int, int> GlobalPlanner::getGoal(){
+    return goal;
+  }
+  
+  std::pair<int, int>  GlobalPlanner::getPose(){
+    return pose;
+  }
+
+  void GlobalPlanner::setGoal(std::pair<int, int> g){
+    goal = g;
+  }
+
+  void GlobalPlanner::setPose(std::pair<int, int> s){
+    pose = s;
+  }
 
 
 //returns a reference to a point o
@@ -101,6 +119,7 @@ int8_t& GlobalPlanner::at(int row, int col) {
 std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
   return path;
 }
+
 
 
 #endif

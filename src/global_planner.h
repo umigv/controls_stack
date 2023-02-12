@@ -6,9 +6,12 @@
 
 
 
-static const std::pair<int, int> goal = {2, 2};
-static const std::pair<int, int> start = {0, 0};
+// static  std::pair<int, int> goal = {2, 2};
+// static  std::pair<int, int> start = {0, 0};
 
+  std::pair<int, int> pose;
+
+  std::pair<int, int> goal;
 
 class GlobalPlanner {
 private: 
@@ -18,7 +21,10 @@ private:
   std::vector<std::pair<int, int>> path;
 
   std::vector<std::pair<int, int>> waypoints;
-    
+
+
+
+
   int height;
 
   int width;
@@ -45,8 +51,15 @@ public:
   // .at() abstracts indexing into the occupancy grid
   int8_t& at(int row, int col);
 
+  void setGoal(std::pair<int, int> g);
+  void setPose(std::pair<int, int> p);
+
+  std::pair<int, int> getGoal();
+  std::pair<int, int> getPose();
+
 
   void setPath(const std::vector<std::pair<int, int>>& path_in);
+
 
 private:
 
