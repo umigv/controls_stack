@@ -67,6 +67,10 @@
   <exec_depend>nav_core</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  
+  <build_depend>message_generation</build_depend>
+  <run_depend>message_runtime</run_depend>
+
 
 
   <!-- The export tag contains other, unspecified, tags -->
