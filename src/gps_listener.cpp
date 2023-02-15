@@ -17,11 +17,12 @@ std_msgs::float64 origin_x, origin_y;
 
 
 // srv function boolean:
-bool service_callback(sensor_msgs::UInt32MultiArray::Request &req,
+bool service_callback(std::queue<UInt32_t &req[],
 sensor_msgs::UInt32MultiArray::Response &res) {
 
     // use an unsigned32 array here (queue)
-    
+    res = req.top();
+    req.pop();
     ROS_INFO("sending back response: ", res);
     return true;
 
@@ -32,7 +33,7 @@ class GPSdata
 public:
     sensor_msgs::NavSatFix gpsMsg;
 
-    GPSdata(ros::NodeHandle nh_)
+    GPSdata(ros::NodeHandle n h_)
     {
         // Subscribing to the topic /NavSAtFix
         gps_sub = nh_.subscribe("/gps/fix", 100, &GPSdata::gpsCallback, this);
@@ -167,7 +168,8 @@ int main(int argc, char **argv)
 
     // publishing node (change name later if needed)
     //ros::NodeHandle gps_publisher_node;
-    
+
+
     ros::ServiceServer service = 
              nh.advertiseServise("goal_coords", service_callback(request, response);
 
