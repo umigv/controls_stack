@@ -5,9 +5,27 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <utility>
+#include <queue>
+#include "std_msgs/UInt32MultiArray"
 #include "sensor_msgs/NavSatFix.h"
 
 using std::string;
+
+// globals
+std_msgs::float64 origin_x, origin_y;
+
+
+// srv function boolean:
+bool service_callback(sensor_msgs::UInt32MultiArray::Request &req,
+sensor_msgs::UInt32MultiArray::Response &res) {
+
+    // use an unsigned32 array here (queue)
+    
+    ROS_INFO("sending back response: ", res);
+    return true;
+
+}
 
 class GPSdata
 {
@@ -18,17 +36,36 @@ public:
     {
         // Subscribing to the topic /NavSAtFix
         gps_sub = nh_.subscribe("/gps/fix", 100, &GPSdata::gpsCallback, this);
+        cartographer_sub = nh_.subscribe("/tf", 100, &GPSdata::cartographerCallback, this);
+        occupancy_sub = nh_.subscribe("/map", 100, &GPSdata::occupancyCallback, this);
     }
     // Callback Function for the GPS
 private:
     // Subscriber
     ros::Subscriber gps_sub;
+    ros::Subscriber cartographer_sub;
+    ros::Subscriber occupancy_sub;
 
     void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg)
     {
         // might need to fix this later
         gpsMsg = *msg;
         ROS_INFO("GPS: %f, %f", msg->latitude, msg->longitude);
+        return;
+    }
+
+    void cartographerCallback(const sensor_msgs::NavSatFix::ConstPtr &msg)
+    {
+        // might need to fix this later
+        gpsMsg = *msg;
+        ROS_INFO("Cartographer: %f, %f", msg->latitude, msg->longitude);
+        return;
+    }
+
+    void occupancyCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg)
+    {
+        origin_x = msg->info->origin->position->x;
+        origin_y = msg->info->origin->position->y;
         return;
     }
 };
@@ -84,13 +121,15 @@ double get_angle_between_points(std::pair<double, double> current, std::pair<dou
     return return_angle < 0 ? return_angle + 360 : return_angle;
 }
 
+
+
+
 // struct for intaking the two coordinate pairs to publish
 // self is the current coord for the robot
 // goal is the next constant + defined coord set by the competition
 struct cordPairs
 {
-
-    cordPairs(int selfx, int selfy, int goalx, int goaly)
+   cordPairs(int selfx, int selfy, int goalx, int goaly)
         : self(selfx, selfy), goal(goalx, goaly) {}
     std::pair<int, int> self;
     std::pair<int, int> goal;
@@ -104,9 +143,10 @@ void gps_transform(GPSdata &gps)
 
 int main(int argc, char **argv)
 {
+    std::queue<uint32_t[]> goals;
 
-    // subsrcibe to /gps/fix
-    // publisher /garmin+gps
+    // subscribe to /gps/fix
+    
 
     ros::init(argc, argv, "gps_listener");
     std::vector<LongLatStorage> given_gps_point;
@@ -123,10 +163,13 @@ int main(int argc, char **argv)
     // Publisher file (NEED LOTTA REVIEW BEFORE GOING PUBLIC)
 
     // fix name later
-    ros::init(argc, argv, "gps_publisher_node");
+    // ros::init(argc, argv, "gps_publisher_node");
 
     // publishing node (change name later if needed)
-    ros::NodeHandle gps_publisher_node;
+    //ros::NodeHandle gps_publisher_node;
+    
+    ros::ServiceServer service = 
+             nh.advertiseServise("goal_coords", service_callback(request, response);
 
     // need publisher type changed + change the buffer size bc Idk how long we'll
     // Need to figure out how to publish a custom message type for struct.
@@ -165,6 +208,9 @@ int main(int argc, char **argv)
         // change this too
         ROS_INFO("Calculated Angle: %f", returned_angle);
         // ROS_INFO(temp);
+
+
+
 
         ros::spinOnce();
         rate.sleep();
