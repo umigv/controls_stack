@@ -1,0 +1,25 @@
+# Two vector pairs of pairs in x y (both value types are doubles)
+# For example, [(1.0, 2.0), (3.0, 4.0), ...]
+# Each vector should have the same number of pairs
+# The service will calculate the sum of corresponding pairs
+# and return the result as a vector of pairs
+
+# Request message
+# The two input vectors
+# 'vector1' and 'vector2' represent the two input vectors
+# 'vector1' and 'vector2' should have the same number of elements
+# 'vector1' and 'vector2' are each a list of pairs in x y (both value types are doubles)
+# Each pair represents an (x, y) coordinate
+# The number of pairs should be the same in 'vector1' and 'vector2'
+# For example, [(1.0, 2.0), (3.0, 4.0), ...]
+---
+# Response message
+# The output vector
+# 'result_vector' represents the output vector
+# 'result_vector' is a list of pairs in x y (both value types are doubles)
+# Each pair represents an (x, y) coordinate
+# The number of pairs is the same as in 'vector1' and 'vector2'
+# For example, [(2.0, 4.0), (6.0, 8.0), ...]
+vector2 vector1
+---
+vector2 result_vector
