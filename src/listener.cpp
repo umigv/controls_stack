@@ -102,10 +102,11 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
                                         const geometry_msgs::PoseStamped::ConstPtr& msg3)
 
 { 
-  std::cout<<"TURTLE ???" << std::endl;
-  nav_msgs::OccupancyGrid map = *msg1;
+  std::cout<<"TURTLE Occupancy Grid Received" << std::endl;
+  nav_msgs::OccupancyGrid map = *msg1; 
 
   nav_msgs::Odometry pos = *msg2;
+  global_planner.updateGlobalMap(map);
   goal_pose = *msg3;
   int pos_x = (int)((pos.pose.pose.position.x - map.info.origin.position.x) / map.info.resolution);
   int pos_y = (int)((pos.pose.pose.position.y - map.info.origin.position.y) / map.info.resolution);
@@ -119,21 +120,52 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
   //     std::cout << map.data[map.info.width*i + j] << "  ";
   //   }
   //   std::cout << std::endl;
-  // }
+  // }  
+  global_planner.setPose({pos_x, pos_y});
+  global_planner.setGoal({goal_x, goal_y});
+
+  
+
   std::cout << pos_x << " " << pos_y << std::endl;
   std::cout << goal_x << " " << goal_y << std::endl;
   std::cout << "Running A*..." << std::endl << std::endl;
-  std::pair<int,int> start(pos_y, pos_x);
-  std::pair<int,int> end(goal_y, goal_x);
+  std::pair<int,int> start = global_planner.getPose();
+  std::pair<int,int> end = global_planner.getGoal();
   // rpastar runner = rpastar::rpastar(start, end, &map);
   
-  rpastar runner(start, end, &map);
-  runner.search();
+
+  std::vector<std::pair<int, int>> new_path;
+  bool runner_goal_found = true;
+
+  if(!global_planner.checkPath()){
+    // std::cout << "Sending the following to runner " << std::endl;
+    // std::cout <<" end " << end.first<< " " << end.second << " start " << start.first << " " << start.second << std::endl;
+    rpastar runner(start, end, global_planner.getMap());
+  
+    // std::cout << "initiliazed runner\n";
+    runner.search();
+    // std::cout << "searched\n";
+    new_path = runner.backtracker();
+
+ 
+
+    std::cout << "Path found!" << std::endl;
+    global_planner.setPath(new_path);
+    
+  }
+  else {
+    std::cout << "Path already clear" << std::endl;
+    new_path = global_planner.getPath();
+
+  }
+
+
   nav_msgs::Path nav_path;
   std::cout << "back to callback\n";
-  if (runner.goal_found())
+  if (runner_goal_found)
   {
-    std::vector<std::pair<int,int>> path = runner.backtracker();
+    std::vector<std::pair<int,int>> path = new_path;
+
     std::cout << "Path found!" << std::endl;
     generate_path(path, msg1);
     // for (int i = 0; i < map.info.height; i++)

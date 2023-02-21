@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "constants.h"
 #include <vector>
 
@@ -9,7 +10,6 @@
 // static  std::pair<int, int> goal = {2, 2};
 // static  std::pair<int, int> start = {0, 0};
 
-  std::pair<int, int> pose;
 
   std::pair<int, int> goal;
 
@@ -22,12 +22,14 @@ private:
 
   std::vector<std::pair<int, int>> waypoints;
 
-
-
+  std::pair<int, int> pose;
 
   int height;
 
   int width;
+
+  // Index of current waypoint in waypoints vector
+  int curr_waypoint;
 
 public:
 
@@ -45,7 +47,7 @@ public:
 
   // Returns true if the current path is still open; false if the current path is blocked by an obstacle
   bool checkPath();
-
+  double calcYaw();
   // Calculates path if necessary
 
   // .at() abstracts indexing into the occupancy grid
@@ -60,6 +62,11 @@ public:
 
   void setPath(const std::vector<std::pair<int, int>>& path_in);
 
+  // Returns true if pose is close enough to current waypoint
+  bool reachedGoal();
+
+  // Converts path, a vector of std::pairs, into a vector of PosedStamped messages for MoveBase
+  std::vector<geometry_msgs::PoseStamped> convertPath();
 
 private:
 

@@ -3,8 +3,8 @@
 
 #include "global_planner.h"
 #include "rpastar.h"
-
-
+#include "geometry_msgs/Point.h"
+#include "tf.h"
 
 GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std::pair<int, int>> & waypoints_in) 
         : height{height_in}, width{width_in}, waypoints(waypoints_in) { 
@@ -119,6 +119,44 @@ int8_t& GlobalPlanner::at(int row, int col) {
 std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
   return path;
 }
+
+  // Returns true if pose is close enough to current waypoint
+  bool GlobalPlanner::reachedGoal() {
+    // Will edit later
+    return pose == waypoints[curr_waypoint];
+  }
+
+  // Converts path, a vector of std::pairs, into a vector of PosedStamped messages for MoveBase
+  std::vector<geometry_msgs::PoseStamped> GlobalPlanner::convertPath() {
+    std::vector<geometry_msgs::PoseStamped> pose_stamps;
+
+    for(std::pair<int, int> coordinate : path) {
+      //PoseStamped is made up of a pose and a header
+
+
+      geometry_msgs::Pose pose;
+       //header is made up of a point (position) and and a quaternion (orientation)
+      // Constructs point, initializer list wouldn't work
+      geometry_msgs::Point point;
+      point.x = double(coordinate.first);
+      point.y = double(coordinate.second);
+      point.z = 0.0;
+
+      pose.position = point;
+
+      //https://answers.ros.org/question/231941/how-to-create-orientation-in-geometry_msgsposestamped-from-angle/
+      //Yaw angle is just a placehorder, currently set to zero
+      pose.orientation = tf::createQuaternionMsgFromYaw(0); //TODO change zero to actual robot yaw 
+       
+      // = {double(coordinate.first), double(coordinate.second),0};
+
+      //TODO add header, use pose and header to make a pose stamed, push back to pose_stamps
+  
+      
+    }
+    
+  }
+ 
 
 
 
