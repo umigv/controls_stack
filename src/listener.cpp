@@ -51,14 +51,17 @@ nav_msgs::Path generate_path(std::vector<std::pair<int,int>> path);
 class Listener
 {
 public:
-  void chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2, const geometry_msgs::PoseStamped::ConstPtr& msg3);
-  void generate_path(std::vector<std::pair<int,int>> path, const nav_msgs::OccupancyGrid::ConstPtr& map);
+  void chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2);
+  void goalCallback(const geometry_msgs::PoseStamped::ConstPtr& msg3);
+  void generate_path(std::vector<std::pair<int,int>> path, const nav_msgs::OccupancyGrid &map);
   nav_msgs::Path get_path();
   geometry_msgs::PoseStamped get_goal();
 
 private:
   nav_msgs::Path nav_path;
   geometry_msgs::PoseStamped goal_pose;
+  nav_msgs::OccupancyGrid map;
+  nav_msgs::Odometry pos;
 };
 
 nav_msgs::Path Listener::get_path()
@@ -71,14 +74,14 @@ geometry_msgs::PoseStamped Listener::get_goal()
   return goal_pose;
 }
 
-void Listener::generate_path(std::vector<std::pair<int,int>> path, const nav_msgs::OccupancyGrid::ConstPtr& map)
+void Listener::generate_path(std::vector<std::pair<int,int>> path, const nav_msgs::OccupancyGrid &map)
 {
   geometry_msgs::PoseStamped pose;
   nav_path.header.frame_id = "map";
   for (int i = 0; i < path.size(); i++)
   {
-    float global_x = (path[i].first*map->info.resolution) + map->info.origin.position.x;
-    float global_y = (path[i].second*map->info.resolution) + map->info.origin.position.y;
+    float global_x = (path[i].first*map.info.resolution) + map.info.origin.position.x;
+    float global_y = (path[i].second*map.info.resolution) + map.info.origin.position.y;
     pose.pose.position.x = global_y;
     pose.pose.position.y = global_x;
     pose.header.frame_id = "map";
@@ -86,13 +89,8 @@ void Listener::generate_path(std::vector<std::pair<int,int>> path, const nav_msg
   }
 }
 
-
-// %Tag(CALLBACK)%
-void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2,
-                                        const geometry_msgs::PoseStamped::ConstPtr& msg3)
+void Listener::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& msg3)
 { 
-  nav_msgs::OccupancyGrid map = *msg1;
-  nav_msgs::Odometry pos = *msg2;
   goal_pose = *msg3;
   int pos_x = (int)((pos.pose.pose.position.x - map.info.origin.position.x) / map.info.resolution);
   int pos_y = (int)((pos.pose.pose.position.y - map.info.origin.position.y) / map.info.resolution);
@@ -121,7 +119,7 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
   {
     std::vector<std::pair<int,int>> path = runner.backtracker();
     std::cout << "Path found!" << std::endl;
-    generate_path(path, msg1);
+    generate_path(path, map);
     // for (int i = 0; i < map.info.height; i++)
     // {
     //   for (int j = 0; j < map.info.width; j++)
@@ -155,6 +153,14 @@ void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr&
     std::cout << "No path found" << std::endl;
 
   }
+}
+
+// %Tag(CALLBACK)%
+void Listener::chatterCallbackTurtleBot(const nav_msgs::OccupancyGrid::ConstPtr& msg1, const nav_msgs::Odometry::ConstPtr& msg2)
+{ 
+  std::cout << "Updated Map and Odom" << std::endl;
+  map = *msg1;
+  pos = *msg2;
 }
 // %EndTag(CALLBACK)%
 
@@ -257,20 +263,17 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
 // %Tag(SUBSCRIBER)%
-  ros::Subscriber sub = n.subscribe("chatter", 1000, chatterCallback);
   ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/NavfnROS/plan", 1000);
-  ros::Publisher goal_pub = n.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 1000);
 
 
 // %EndTag(SUBSCRIBER)%
   Listener listener;
+  ros::Subscriber sub = n.subscribe("move_base_simple/goal", 1000, &Listener::goalCallback, &listener);
   message_filters::Subscriber<nav_msgs::OccupancyGrid> map_sub(n, "map", 100);
   message_filters::Subscriber<nav_msgs::Odometry> pos_sub(n, "odom", 100);
-  message_filters::Subscriber<geometry_msgs::PoseStamped> goal_sub(n, "move_base_simple/goal", 100);
-  // message_filters::TimeSynchronizer<nav_msgs::OccupancyGrid, nav_msgs::Odometry> sync(map_sub, pos_sub, 100);
-  typedef message_filters::sync_policies::ApproximateTime<nav_msgs::OccupancyGrid, nav_msgs::Odometry, geometry_msgs::PoseStamped> MySyncPolicy;
-  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), map_sub, pos_sub, goal_sub);
-  sync.registerCallback(boost::bind(&Listener::chatterCallbackTurtleBot, &listener, _1, _2, _3));
+  typedef message_filters::sync_policies::ApproximateTime<nav_msgs::OccupancyGrid, nav_msgs::Odometry> MySyncPolicy;
+  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), map_sub, pos_sub);
+  sync.registerCallback(boost::bind(&Listener::chatterCallbackTurtleBot, &listener, _1, _2));
 
   // std::cout << path.poses[0].pose.position.x << " " << path.poses[0].pose.position.y << std::endl;
   // std::cout << path.poses[1].pose.position.x << " " << path.poses[1].pose.position.y << std::endl;
