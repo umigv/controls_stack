@@ -2,6 +2,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "constants.h"
+#include "tf/tf.h"
 #include <vector>
 
 
@@ -47,7 +48,9 @@ public:
 
   // Returns true if the current path is still open; false if the current path is blocked by an obstacle
   bool checkPath();
-  double calcYaw();
+
+  //finds angle of the robots trajectory relative to the the axis the robot is facing at start
+  double calcYaw( std::pair<int, int> coordinate);
   // Calculates path if necessary
 
   // .at() abstracts indexing into the occupancy grid

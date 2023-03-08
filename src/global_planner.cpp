@@ -4,7 +4,7 @@
 #include "global_planner.h"
 #include "rpastar.h"
 #include "geometry_msgs/Point.h"
-#include "tf.h"
+
 
 GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std::pair<int, int>> & waypoints_in) 
         : height{height_in}, width{width_in}, waypoints(waypoints_in) { 
@@ -126,7 +126,7 @@ std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
     return pose == waypoints[curr_waypoint];
   }
 
-  // Converts path, a vector of std::pairs, into a vector of PosedStamped messages for MoveBase
+  // Converts path, a vector of std::pairs, into a vector of PosedStamped messages for MoveBase 
   std::vector<geometry_msgs::PoseStamped> GlobalPlanner::convertPath() {
     std::vector<geometry_msgs::PoseStamped> pose_stamps;
 
@@ -145,17 +145,34 @@ std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
       pose.position = point;
 
       //https://answers.ros.org/question/231941/how-to-create-orientation-in-geometry_msgsposestamped-from-angle/
-      //Yaw angle is just a placehorder, currently set to zero
-      pose.orientation = tf::createQuaternionMsgFromYaw(0); //TODO change zero to actual robot yaw 
+      //Yaw angle is currently set to be the robot's angle relative to the y axis TODO change if nessarcy 
+      pose.orientation = tf::createQuaternionMsgFromYaw(calcYaw(coordinate)); 
        
       // = {double(coordinate.first), double(coordinate.second),0};
 
-      //TODO add header, use pose and header to make a pose stamed, push back to pose_stamps
+      //TODO actualy add data to header WON"T WORK WITHOUT IT !!!!!!
+      std_msgs::Header header;
+      geometry_msgs::PoseStamped curr_pose_stamp;
+      curr_pose_stamp.header= header;
+      curr_pose_stamp.pose = pose;
   
-      
     }
-    
+    return pose_stamps;
   }
+
+  
+
+  //finds angle of the robots trajectory relative to the the axis the robot is facing
+  double GlobalPlanner::calcYaw( std::pair<int, int> A ){
+    //assumes the yaw is the angle between the vector 1,1 and the vector the robot should be pointed towards TODO change
+    // the vector A (where the robot is facing) , 1,1 is the vector B because that is "North"
+     std::pair<int, int> B = {1,1};
+    double mag = sqrt(pow(A.first, A.second)) * sqrt(pow(B.first, B.second)) ; // + sqrt(2) is the mag of unit vector 
+    double dotProduct = (A.first *B.first)  + (A.second*B.second); //dotProduct of anything times the unit vector is 
+    return acos(dotProduct/mag);
+
+  }
+
  
 
 
