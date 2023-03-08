@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/PoseStamped.h"
+#include <base_global_planner.h>
 #include "constants.h"
 #include "tf/tf.h"
 #include <vector>
@@ -14,7 +15,7 @@
 
   std::pair<int, int> goal;
 
-class GlobalPlanner {
+class GlobalPlanner : public nav_core::BaseGlobalPlanner {
 private: 
   nav_msgs::OccupancyGrid global_map; 
  // const nav_msgs::OccupancyGrid::ConstPtr & map_ptr =  & global_map;
@@ -37,6 +38,15 @@ public:
   // Ctor
   GlobalPlanner(int height_in, int width_in, const std::vector<std::pair<int, int>> & waypoints_in);
 
+  void initialize(std::string name, costmap_2d::Costmap2DROS *ros_costmap) override;
+
+  // Gets called when a new occupancy grid is received. 
+  bool makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan) override;
+
+  bool makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan, double &cost) override;
+
+  ~GlobalPlanner() = default;
+
   // Returns global_map Occupancy Grid
   nav_msgs::OccupancyGrid * getMap();
 
@@ -50,7 +60,7 @@ public:
   bool checkPath();
 
   //finds angle of the robots trajectory relative to the the axis the robot is facing at start
-  double calcYaw( std::pair<int, int> coordinate);
+  double GlobalPlanner::calcYaw( std::pair<int, int> curr_pose, std::pair<int, int> next_pose);
   // Calculates path if necessary
 
   // .at() abstracts indexing into the occupancy grid

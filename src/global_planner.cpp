@@ -46,11 +46,11 @@ bool GlobalPlanner::checkPath(){
         return false;
       }
 
-      std::cout<< " printing path in check path " << std::endl;
+      std::cout << " printing path in check path " << std::endl;
 
      for(auto i : path ) {
   
-      std::cout<<i.first<< " " << i.second << std::endl;
+      std::cout << i.first<< " " << i.second << std::endl;
       }
 
     std::cout << "checking path...\n";
@@ -108,7 +108,7 @@ double GlobalPlanner::cost_path(){
 //returns a reference to a point o
 int8_t& GlobalPlanner::at(int row, int col) {
    // std::cout << "at ," << row << " " << col << std::endl;
-    int x = (row*width )+ col;
+    int x = (row*width) + col;
     return global_map.data.at(x);
   }
 
@@ -122,17 +122,24 @@ std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
 
   // Returns true if pose is close enough to current waypoint
   bool GlobalPlanner::reachedGoal() {
-    // Will edit later
-    return pose == waypoints[curr_waypoint];
+    // TODO Will edit later
+    int threshold = 3;
+    int x_gap = waypoints[curr_waypoint].first - pose.first;
+    int y_gap = waypoints[curr_waypoint].second - pose.second;
+    return std::max(x_gap, y_gap) < threshold;
+
   }
 
   // Converts path, a vector of std::pairs, into a vector of PosedStamped messages for MoveBase 
   std::vector<geometry_msgs::PoseStamped> GlobalPlanner::convertPath() {
     std::vector<geometry_msgs::PoseStamped> pose_stamps;
 
-    for(std::pair<int, int> coordinate : path) {
-      //PoseStamped is made up of a pose and a header
+    for(int i =  0 ; i < path.size() -1 ; i++) {
 
+      std::pair<int, int> coordinate = path.at(i);
+      std::pair<int, int> next_corrdinate = path.at(i+1);
+
+      //PoseStamped is made up of a pose and a header
 
       geometry_msgs::Pose pose;
        //header is made up of a point (position) and and a quaternion (orientation)
@@ -144,16 +151,16 @@ std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
 
       pose.position = point;
 
-      //https://answers.ros.org/question/231941/how-to-create-orientation-in-geometry_msgsposestamped-from-angle/
+      // https://answers.ros.org/question/231941/how-to-create-orientation-in-geometry_msgsposestamped-from-angle/
       //Yaw angle is currently set to be the robot's angle relative to the y axis TODO change if nessarcy 
-      pose.orientation = tf::createQuaternionMsgFromYaw(calcYaw(coordinate)); 
+      pose.orientation = tf::createQuaternionMsgFromYaw(calcYaw(coordinate, next_corrdinate)); 
        
       // = {double(coordinate.first), double(coordinate.second),0};
 
-      //TODO actualy add data to header WON"T WORK WITHOUT IT !!!!!!
+      //TODO actualy add data to header 
       std_msgs::Header header;
       geometry_msgs::PoseStamped curr_pose_stamp;
-      curr_pose_stamp.header= header;
+      curr_pose_stamp.header= header; 
       curr_pose_stamp.pose = pose;
   
     }
@@ -162,11 +169,11 @@ std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
 
   
 
-  //finds angle of the robots trajectory relative to the the axis the robot is facing
-  double GlobalPlanner::calcYaw( std::pair<int, int> A ){
-    //assumes the yaw is the angle between the vector 1,1 and the vector the robot should be pointed towards TODO change
+  //Place holder
+  //Inputs two int pairs, A (curr pose),, B (next pose) 
+  double GlobalPlanner::calcYaw( std::pair<int, int> A, std::pair<int, int> B){
     // the vector A (where the robot is facing) , 1,1 is the vector B because that is "North"
-     std::pair<int, int> B = {1,1};
+     
     double mag = sqrt(pow(A.first, A.second)) * sqrt(pow(B.first, B.second)) ; // + sqrt(2) is the mag of unit vector 
     double dotProduct = (A.first *B.first)  + (A.second*B.second); //dotProduct of anything times the unit vector is 
     return acos(dotProduct/mag);
