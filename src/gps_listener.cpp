@@ -33,7 +33,7 @@ class GPSdata
 public:
     sensor_msgs::NavSatFix gpsMsg;
 
-    GPSdata(ros::NodeHandle n h_)
+    GPSdata(ros::NodeHandle nh_)
     {
         // Subscribing to the topic /NavSAtFix
         gps_sub = nh_.subscribe("/gps/fix", 100, &GPSdata::gpsCallback, this);
