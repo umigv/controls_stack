@@ -7,45 +7,63 @@
 #include <cmath>
 #include <utility>
 #include <queue>
+#include "geometry_msgs/Point.msg"
 #include "std_msgs/UInt32MultiArray"
 #include "sensor_msgs/NavSatFix.h"
+#include "geometry_msgs/Vector3.h"
 
 using std::string;
 
 // globals
-std_msgs::float64 origin_x, origin_y;
+// std_msgs::float64 origin_x, origin_y;
+std_msgs::float64 rob_x, rob_y;
+
+
 
 
 // srv function boolean:
-bool service_callback(std::queue<UInt32_t &req[],
-sensor_msgs::UInt32MultiArray::Response &res) {
+bool service_callback(std_msgs/geometry_msgs::Point::Response &res) {
 
-    // use an unsigned32 array here (queue)
-    res = req.top();
-    req.pop();
+    //Need to figure out how to get an instance of GPSdata into this function.
+    get_next_goal(&res);
+    
+
     ROS_INFO("sending back response: ", res);
     return true;
 
 }
 
+void get_next_goal(std_msgs/geometry_msgs::Point::Response &res) {
+                    res.x = goals.top().first;
+                    res.y = goals.top().second;
+                    goals.pop();
+    }
+
 class GPSdata
 {
 public:
+    std_msgs::float64 rob_x, rob_y;
     sensor_msgs::NavSatFix gpsMsg;
+
+    //goals.first = x coord, goals.second = y coord.
+    std::queue< pair<std_msgs::float64, std_msgs::float64> > goals;
 
     GPSdata(ros::NodeHandle nh_)
     {
-        // Subscribing to the topic /NavSAtFix
         gps_sub = nh_.subscribe("/gps/fix", 100, &GPSdata::gpsCallback, this);
-        cartographer_sub = nh_.subscribe("/tf", 100, &GPSdata::cartographerCallback, this);
-        occupancy_sub = nh_.subscribe("/map", 100, &GPSdata::occupancyCallback, this);
+        cartographer_sub = nh_.subscribe("/tf", 100, &GPSdata::cartographerCallback, this); // gives x,y coords
+        // occupancy_sub = nh_.subscribe("/map", 100, &GPSdata::occupancyCallback, this); // gives origin
     }
-    // Callback Function for the GPS
+
+    //returns next goal to the service and pops top of queue goals
+    
+    
 private:
     // Subscriber
     ros::Subscriber gps_sub;
     ros::Subscriber cartographer_sub;
     ros::Subscriber occupancy_sub;
+
 
     void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg)
     {
@@ -55,19 +73,11 @@ private:
         return;
     }
 
-    void cartographerCallback(const sensor_msgs::NavSatFix::ConstPtr &msg)
-    {
-        // might need to fix this later
-        gpsMsg = *msg;
-        ROS_INFO("Cartographer: %f, %f", msg->latitude, msg->longitude);
-        return;
-    }
-
-    void occupancyCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg)
-    {
-        origin_x = msg->info->origin->position->x;
-        origin_y = msg->info->origin->position->y;
-        return;
+    void cartographerCallback(const tf2_msgs::TFMessage::ConstPtr &msg)
+    {        
+        // update current location of robot in global frame (x,y in meters)
+        rob_x = msg->transforms[0].transform.translation.x;
+        rob_y = msg->transforms[0].transform.translation.y;
     }
 };
 
@@ -128,9 +138,9 @@ double get_angle_between_points(std::pair<double, double> current, std::pair<dou
 // struct for intaking the two coordinate pairs to publish
 // self is the current coord for the robot
 // goal is the next constant + defined coord set by the competition
-struct cordPairs
+struct coordPairs
 {
-   cordPairs(int selfx, int selfy, int goalx, int goaly)
+   coordPairs(int selfx, int selfy, int goalx, int goaly)
         : self(selfx, selfy), goal(goalx, goaly) {}
     std::pair<int, int> self;
     std::pair<int, int> goal;
@@ -142,9 +152,42 @@ void gps_transform(GPSdata &gps)
     double updated_latitude = 0;
 }
 
+void read_goal_coords() {
+    std::ifstream in;
+    in.open("given_coords.txt");
+
+    string line = "";
+
+    for (int i = 0; i<5; i++) {
+        getline(in, line); // throwaway away comment line
+        
+        in >> line;
+        line.erase(line.end()-1);
+        float latitude = stof(line);
+
+        in >> line;
+        float longitude = stof(line);
+
+        std_msgs::float64 input_latitude = latitude;
+        std_msgs::float64 input_longitude = longitude;
+
+        goals.push({input_latitude, input_longitude});
+        
+        // get rid of remaining newline
+        getline(in, line);
+    }
+
+    
+}
+
 int main(int argc, char **argv)
 {
-    std::queue<uint32_t[]> goals;
+
+    // read in given_cords.txt
+    read_goal_coords();
+
+    
+    //std::queue<uint32_t[]> goals; 
 
     // subscribe to /gps/fix
     
@@ -155,27 +198,15 @@ int main(int argc, char **argv)
     // Initializing the node for the GPS
     // ros::init(argc, argv, "gps_Subscriber");
     ros::NodeHandle nh;
-    GPSdata gps_node(nh);
+    GPSdata gps_node(nh);  
 
     // Getting the data from the GPS
     double gpsLat = 0;
     double gpsLong = 0;
 
-    // Publisher file (NEED LOTTA REVIEW BEFORE GOING PUBLIC)
+     ros::ServiceServer service = 
+              nh.advertiseService("goal_coords", service_callback);
 
-    // fix name later
-    // ros::init(argc, argv, "gps_publisher_node");
-
-    // publishing node (change name later if needed)
-    //ros::NodeHandle gps_publisher_node;
-
-
-    ros::ServiceServer service = 
-             nh.advertiseServise("goal_coords", service_callback(request, response);
-
-    // need publisher type changed + change the buffer size bc Idk how long we'll
-    // Need to figure out how to publish a custom message type for struct.
-    // ros::Publisher gps_talker_pub = gps_publisher_node.advertise<cordPairs>("gps_talker_topic", 10000);
 
     ros::Rate rate(10);
     while (ros::ok())
@@ -189,7 +220,6 @@ int main(int argc, char **argv)
         ROS_INFO("Current Latitude: %f", gpsLat);
         ROS_INFO("Current Longitude: %f", gpsLong);
 
-        // Publighing part AND YES I KNOW THE STYLE IS A 0/10 BUT WE WILL FIX IT EVENTUALLY^TM
 
         // change this as we are storing the "custom data" that we will be making
         float msg;
@@ -203,9 +233,6 @@ int main(int argc, char **argv)
         string temp;
         returned_angle >> temp;
 
-        // change the aprameter in .publish after custom data type is made
-        // gps_talker_pub.publish(msg);
-        gps_talker_pub.publish(msg);
 
         // change this too
         ROS_INFO("Calculated Angle: %f", returned_angle);

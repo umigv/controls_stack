@@ -1,0 +1,9 @@
+//cord 5 (lat first, long second)
+100.3923, 59.442
+//cord 4
+0.2994, 944.24
+//cord 3
+
+//cord 2
+
+//cord 1

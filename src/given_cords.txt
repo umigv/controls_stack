@@ -1,9 +1,14 @@
-//cord 5 (lat first, long second)
+r//cord 5 (lat first, long second)
+124.2434, 124.24134
 
 //cord 4
+12424.34, 124241.34
 
 //cord 3
+12424.34, 124241.34
 
 //cord 2
+12424.34, 124241.34
 
 //cord 1
+12424.34, 124241.34
