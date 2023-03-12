@@ -2,190 +2,173 @@
 #define GLOBAL_PLANNER_H
 
 #include "global_planner.h"
-#include "rpastar.h"
+
 #include "geometry_msgs/Point.h"
+#include "rpastar.h"
 
+GlobalPlanner::GlobalPlanner(
+    int height_in, int width_in,
+    const std::vector<std::pair<int, int>>& waypoints_in)
+    : height{height_in}, width{width_in}, waypoints(waypoints_in) {
+    // Fills global map with -1s to start
+    // std::cout<<"gp ctor" << width << std::endl;
+    global_map.info.width = width;
+    global_map.info.height = height;
 
-GlobalPlanner::GlobalPlanner(int height_in, int width_in, const std::vector<std::pair<int, int>> & waypoints_in) 
-        : height{height_in}, width{width_in}, waypoints(waypoints_in) { 
-        // Fills global map with -1s to start
-        // std::cout<<"gp ctor" << width << std::endl;
-        global_map.info.width = width;
-        global_map.info.height = height;
-        
-        for(int i = 0; i < height; ++i) {
-          for(int j = 0; j < width; ++j) {
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
             global_map.data.push_back(-1);
-
-          }
         }
-
-        //init path straight to goal
-
-        // std::cout<< " printing path in gp ctor " << std::endl;
-
-     for(auto i : path ) {
-      std::cout<<i.first<< " " << i.second << std::endl;
     }
 
-      //  std::cout<<"gp ctor end"<< std::endl;
+    // init path straight to goal
 
-    } // GlobalPlanner()
+    // std::cout<< " printing path in gp ctor " << std::endl;
+
+    for (auto i : path) {
+        std::cout << i.first << " " << i.second << std::endl;
+    }
+
+    //  std::cout<<"gp ctor end"<< std::endl;
+
+}  // GlobalPlanner()
 
 // Returns global_map Occupancy Grid
-  nav_msgs::OccupancyGrid * GlobalPlanner:: getMap() {
-    return  &global_map;
-  }
+nav_msgs::OccupancyGrid* GlobalPlanner::getMap() { return &global_map; }
 
-
-
-//goes through the path and checks if its its clear 
-bool GlobalPlanner::checkPath(){
-      // If the path is empty, return false so we calculate an initial path
-      if(path.empty()) {
+// goes through the path and checks if its its clear
+bool GlobalPlanner::checkPath() {
+    // If the path is empty, return false so we calculate an initial path
+    if (path.empty()) {
         return false;
-      }
+    }
 
-      std::cout << " printing path in check path " << std::endl;
+    std::cout << " printing path in check path " << std::endl;
 
-     for(auto i : path ) {
-  
-      std::cout << i.first<< " " << i.second << std::endl;
-      }
+    for (auto i : path) {
+        std::cout << i.first << " " << i.second << std::endl;
+    }
 
     std::cout << "checking path...\n";
     for (auto currentPos : path) {
-      int row = currentPos.first;
-      int col = currentPos.second;
-      int8_t check = this->at(row, col);
-      check = check - '0'; // we subtracted '0' from check because check is an signed char, 
-      // std::cout << "  occpancy grid " << std::to_string(check) << std::endl;
-      // std::cout << "  threshold  grid " << std::to_string(threshold )<< std::endl;
-      if (check != threshold) {
-        std::cout << "path not clear\n";
-        return false; //path not clear
-      }
+        int row = currentPos.first;
+        int col = currentPos.second;
+        int8_t check = this->at(row, col);
+        check = check - '0';  // we subtracted '0' from check because check is
+                              // an signed char,
+        // std::cout << "  occpancy grid " << std::to_string(check) <<
+        // std::endl; std::cout << "  threshold  grid " <<
+        // std::to_string(threshold )<< std::endl;
+        if (check != threshold) {
+            std::cout << "path not clear\n";
+            return false;  // path not clear
+        }
     }
     std::cout << "path clear\n";
-    return true; //path is clear
+    return true;  // path is clear
 }
 
-double GlobalPlanner::cost_path(){
+double GlobalPlanner::cost_path() {
     double sum = 0;
     for (auto currentPos : path) {
-      sum += double(currentPos.first + currentPos.second);
+        sum += double(currentPos.first + currentPos.second);
     }
-    return sum; //path is clear
+    return sum;  // path is clear
 }
 
-  void GlobalPlanner::updateGlobalMap(nav_msgs::OccupancyGrid local_map){
+void GlobalPlanner::updateGlobalMap(nav_msgs::OccupancyGrid local_map) {
     // Get map and current pose from Ben's node
 
-
-
-    global_map = local_map; 
+    global_map = local_map;
     return;
-  }
-
-
-  std::pair<int, int> GlobalPlanner::getGoal(){
-    return goal;
-  }
-  
-  std::pair<int, int>  GlobalPlanner::getPose(){
-    return pose;
-  }
-
-  void GlobalPlanner::setGoal(std::pair<int, int> g){
-    goal = g;
-  }
-
-  void GlobalPlanner::setPose(std::pair<int, int> s){
-    pose = s;
-  }
-
-
-//returns a reference to a point o
-int8_t& GlobalPlanner::at(int row, int col) {
-   // std::cout << "at ," << row << " " << col << std::endl;
-    int x = (row*width) + col;
-    return global_map.data.at(x);
-  }
-
-  void GlobalPlanner::setPath(const std::vector<std::pair<int, int>>& path_in) {
-    path = path_in;
-  }
-
-std::vector<std::pair<int, int>>  GlobalPlanner::getPath() {
-  return path;
 }
 
-  // Returns true if pose is close enough to current waypoint
-  bool GlobalPlanner::reachedGoal() {
+std::pair<int, int> GlobalPlanner::getGoal() { return goal; }
+
+std::pair<int, int> GlobalPlanner::getPose() { return pose; }
+
+void GlobalPlanner::setGoal(std::pair<int, int> g) { goal = g; }
+
+void GlobalPlanner::setPose(std::pair<int, int> s) { pose = s; }
+
+// returns a reference to a point o
+int8_t& GlobalPlanner::at(int row, int col) {
+    // std::cout << "at ," << row << " " << col << std::endl;
+    int x = (row * width) + col;
+    return global_map.data.at(x);
+}
+
+void GlobalPlanner::setPath(const std::vector<std::pair<int, int>>& path_in) {
+    path = path_in;
+}
+
+std::vector<std::pair<int, int>> GlobalPlanner::getPath() { return path; }
+
+// Returns true if pose is close enough to current waypoint
+bool GlobalPlanner::reachedGoal() {
     // TODO Will edit later
     int threshold = 3;
     int x_gap = waypoints[curr_waypoint].first - pose.first;
     int y_gap = waypoints[curr_waypoint].second - pose.second;
     return std::max(x_gap, y_gap) < threshold;
+}
 
-  }
-
-  // Converts path, a vector of std::pairs, into a vector of PosedStamped messages for MoveBase 
-  std::vector<geometry_msgs::PoseStamped> GlobalPlanner::convertPath() {
+// Converts path, a vector of std::pairs, into a vector of PosedStamped messages
+// for MoveBase
+std::vector<geometry_msgs::PoseStamped> GlobalPlanner::convertPath() {
     std::vector<geometry_msgs::PoseStamped> pose_stamps;
 
-    for(int i =  0 ; i < path.size() -1 ; i++) {
+    for (int i = 0; i < path.size() - 1; i++) {
+        std::pair<int, int> coordinate = path.at(i);
+        std::pair<int, int> next_corrdinate = path.at(i + 1);
 
-      std::pair<int, int> coordinate = path.at(i);
-      std::pair<int, int> next_corrdinate = path.at(i+1);
+        // PoseStamped is made up of a pose and a header
 
-      //PoseStamped is made up of a pose and a header
+        geometry_msgs::Pose pose;
+        // header is made up of a point (position) and and a quaternion
+        // (orientation)
+        // Constructs point, initializer list wouldn't work
+        geometry_msgs::Point point;
+        point.x = double(coordinate.first);
+        point.y = double(coordinate.second);
+        point.z = 0.0;
 
-      geometry_msgs::Pose pose;
-       //header is made up of a point (position) and and a quaternion (orientation)
-      // Constructs point, initializer list wouldn't work
-      geometry_msgs::Point point;
-      point.x = double(coordinate.first);
-      point.y = double(coordinate.second);
-      point.z = 0.0;
+        pose.position = point;
 
-      pose.position = point;
+        // https://answers.ros.org/question/231941/how-to-create-orientation-in-geometry_msgsposestamped-from-angle/
+        // Yaw angle is currently set to be the robot's angle relative to the y
+        // axis TODO change if nessarcy
+        pose.orientation = tf::createQuaternionMsgFromYaw(
+            calcYaw(coordinate, next_corrdinate));
 
-      // https://answers.ros.org/question/231941/how-to-create-orientation-in-geometry_msgsposestamped-from-angle/
-      //Yaw angle is currently set to be the robot's angle relative to the y axis TODO change if nessarcy 
-      pose.orientation = tf::createQuaternionMsgFromYaw(calcYaw(coordinate, next_corrdinate)); 
-       
-      // = {double(coordinate.first), double(coordinate.second),0};
+        // = {double(coordinate.first), double(coordinate.second),0};
 
-      //TODO actualy add data to header 
-      std_msgs::Header header;
-      geometry_msgs::PoseStamped curr_pose_stamp;
-      curr_pose_stamp.header= header; 
-      curr_pose_stamp.pose = pose;
-  
+        // TODO actualy add data to header
+        std_msgs::Header header;
+        geometry_msgs::PoseStamped curr_pose_stamp;
+        curr_pose_stamp.header = header;
+        curr_pose_stamp.pose = pose;
     }
     return pose_stamps;
-  }
+}
 
-  
+// Place holder
+// Inputs two int pairs, A (curr pose),, B (next pose)
+double GlobalPlanner::calcYaw(std::pair<int, int> A, std::pair<int, int> B) {
+    // the vector A (where the robot is facing) , 1,1 is the vector B because
+    // that is "North"
 
-  //Place holder
-  //Inputs two int pairs, A (curr pose),, B (next pose) 
-  double GlobalPlanner::calcYaw( std::pair<int, int> A, std::pair<int, int> B){
-    // the vector A (where the robot is facing) , 1,1 is the vector B because that is "North"
-     
-    double mag = sqrt(pow(A.first, A.second)) * sqrt(pow(B.first, B.second)) ; // + sqrt(2) is the mag of unit vector 
-    double dotProduct = (A.first *B.first)  + (A.second*B.second); //dotProduct of anything times the unit vector is 
-    return acos(dotProduct/mag);
-
-  }
-
- 
-
-
+    double mag =
+        sqrt(pow(A.first, A.second)) *
+        sqrt(pow(B.first, B.second));  // + sqrt(2) is the mag of unit vector
+    double dotProduct =
+        (A.first * B.first) +
+        (A.second *
+         B.second);  // dotProduct of anything times the unit vector is
+    return acos(dotProduct / mag);
+}
 
 #endif
-
 
 // 5 54,40,0[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 // 5 54,40,0[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
