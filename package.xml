@@ -72,6 +72,6 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
+  <nav_core plugin="${prefix}/startup_plugin.xml" />
   </export>
 </package>
