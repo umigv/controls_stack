@@ -7,6 +7,7 @@ PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanne
 
 using namespace std;
 
+
 //Default Constructor
 namespace global_planner {
 
@@ -68,16 +69,31 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     std::pair<int,int> first(pos_y, pos_x);
     std::pair<int,int> last(goal_y, goal_x);
     // rpastar runner = rpastar::rpastar(start, end, &map);
-    rpastar runner(first, last, &map);
+    rpastar runner(first, last, costmap_);
     runner.search();
-    nav_msgs::Path nav_path;
     std::cout << "back to callback\n";
     if (runner.goal_found())
     {
-    std::vector<std::pair<int,int>> path = runner.backtracker();
-    std::cout << "Path found!" << std::endl;
-    generate_path(path, map);
+        std::vector<std::pair<int,int>> path = runner.backtracker();
+        std::cout << "Path found!" << std::endl;
+        generate_path(costmap_,path,plan);
     }
     return true;
 }
+
+geometry_msgs::PoseStamped GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<std::pair<int,int>> &path, std::vector<geometry_msgs::PoseStamped>& plan)
+{
+    geometry_msgs::PoseStamped pose;
+    for (int i = 0; i < path.size(); i++)
+    {
+        float global_x = (path[i].first*map->getResolution()) + map->getOriginX();
+        float global_y = (path[i].second*map->getResolution()) + map->getOriginY();
+        pose.pose.position.x = global_y;
+        pose.pose.position.y = global_x;
+        pose.header.frame_id = "map";
+        plan.push_back(pose);
+    }
+}
+
 };
+

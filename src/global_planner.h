@@ -23,6 +23,7 @@ GlobalPlanner();
 GlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
 /** overridden classes from interface nav_core::BaseGlobalPlanner **/
+geometry_msgs::PoseStamped generate_path(const costmap_2d::Costmap2D* map, std::vector<std::pair<int,int>> &path, std::vector<geometry_msgs::PoseStamped>& plan);
 void initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 bool makePlan(const geometry_msgs::PoseStamped& start,
             const geometry_msgs::PoseStamped& goal,

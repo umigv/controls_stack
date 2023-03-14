@@ -7,7 +7,8 @@
 #include <cmath>
 #include <vector>
 #include "nav_msgs/OccupancyGrid.h"
-
+#include <costmap_2d/costmap_2d_ros.h>
+#include <costmap_2d/costmap_2d.h>
 
 class rpastar
 {
@@ -61,14 +62,14 @@ class rpastar
         };
 
     public:
-        rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid* msg);
+        rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, costmap_2d::Costmap2D* msg);
         void find_target();
         void search();
         bool goal_found();
         std::vector<std::pair<int,int>> backtracker();
         void processNode(int x, int y, Node* parent);
         //void gpsCallback(const nav_msgs::Odometry::ConstPtr& msg);
-        void costMapCallback(nav_msgs::OccupancyGrid *msg);
+        void costMapCallback(costmap_2d::Costmap2D *msg);
         double calculateEuclideanDistance(const Node& node1, const Node& node2);
 
     private:

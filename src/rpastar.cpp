@@ -55,7 +55,7 @@ bool rpastar::Node::at_target(std::pair<int,int> &target_state)
 }
 
 
-rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, nav_msgs::OccupancyGrid * msg) : start_state(start_state_in), target_state(target_state_in)
+rpastar::rpastar(std::pair<int,int> start_state_in, std::pair<int,int> target_state_in, costmap_2d::Costmap2D * msg) : start_state(start_state_in), target_state(target_state_in)
 {
     //these are in the a* old implementation but don't think we need them as they are called in subscribe in listener.cpp
     // gpsCall();
@@ -138,11 +138,11 @@ void rpastar::processNode(int row, int col, Node *parent)
 }
 
 // called each time a new costmap is recieved...
-void rpastar::costMapCallback(nav_msgs::OccupancyGrid* msg)
+void rpastar::costMapCallback(costmap_2d::Costmap2D* msg)
 {
 	// Fill out the costmap width and height from the occupancy grid info message
-    int costmap_width = msg->info.width;
-    int costmap_height = msg->info.height;
+    int costmap_width = msg->getSizeInCellsX();
+    int costmap_height = msg->getSizeInCellsY();
     
     cost_map = std::vector<std::vector<int>>(costmap_height, std::vector<int>(costmap_width, 0));
     graph = std::vector<std::vector<rpastar::Node>>(costmap_height, std::vector<rpastar::Node>(costmap_width, rpastar::Node()));
@@ -161,7 +161,7 @@ void rpastar::costMapCallback(nav_msgs::OccupancyGrid* msg)
     // Fill out the costmap member variable using info from the occupancy grid costmap message
     for(int i = 0; i < costmap_height; i++){
         for(int j = 0; j < costmap_width; j++){
-            cost_map[i][j] = msg->data[i*costmap_width + j] - '0';
+            cost_map[i][j] = msg->getCost(j,i) - '0';
             graph[i][j].set_state(i,j);
         }
     }
