@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(startup)
 
+add_library(rpastar_lib src/rpastar.cpp)
+target_link_libraries(rpastar_lib ${catkin_LIBRARIES})
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -10,6 +13,7 @@ project(startup)
 find_package(catkin REQUIRED COMPONENTS
   costmap_2d
   global_planner
+  base_local_planner
   move_base
   nav_core
   roscpp
@@ -106,10 +110,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES startup
-#  CATKIN_DEPENDS costmap_2d global_planner move_base nav_core roscpp stdmsgs
-#  DEPENDS system_lib
+ INCLUDE_DIRS include
+ LIBRARIES startup
+ CATKIN_DEPENDS costmap_2d global_planner move_base nav_core roscpp std_msgs base_local_planner
+ DEPENDS system_lib
 )
 
 ###########
@@ -119,14 +123,12 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
+
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/startup.cpp
-# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -213,12 +215,15 @@ add_executable(talker src/talker.cpp)
 target_link_libraries(talker ${catkin_LIBRARIES})
 add_dependencies(talker startup_generate_messages_cpp)
 
-add_executable(listener src/listener.cpp)
-target_link_libraries(listener ${catkin_LIBRARIES})
-add_dependencies(listener startup_generate_messages_cpp)
+# add_executable(listener src/listener.cpp)
+# target_link_libraries(listener ${catkin_LIBRARIES})
+# add_dependencies(listener startup_generate_messages_cpp)
 
 add_executable(goal_pub src/goal_pub.cpp)
 target_link_libraries(goal_pub ${catkin_LIBRARIES})
 add_dependencies(goal_pub startup_generate_messages_cpp)
 
 add_library(global_planner_lib src/global_planner.cpp)
+target_link_libraries(global_planner_lib ${catkin_LIBRARIES} rpastar)
+
+target_include_directories(global_planner_lib PRIVATE include)

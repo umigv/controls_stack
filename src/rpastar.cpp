@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "rpastar.h"
+#include "../include/rpastar.h"
 #include "cmath"
 
 static const int threshold = 0;

@@ -51,18 +51,21 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>costmap_2d</build_depend>
   <build_depend>global_planner</build_depend>
+  <build_depend>base_local_planner</build_depend>
   <build_depend>move_base</build_depend>
   <build_depend>nav_core</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_export_depend>costmap_2d</build_export_depend>
   <build_export_depend>global_planner</build_export_depend>
+  <build_export_depend>base_local_planner</build_export_depend>
   <build_export_depend>move_base</build_export_depend>
   <build_export_depend>nav_core</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <exec_depend>costmap_2d</exec_depend>
   <exec_depend>global_planner</exec_depend>
+  <exec_depend>base_local_planner</exec_depend>
   <exec_depend>move_base</exec_depend>
   <exec_depend>nav_core</exec_depend>
   <exec_depend>roscpp</exec_depend>

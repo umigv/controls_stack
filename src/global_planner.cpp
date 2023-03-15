@@ -1,6 +1,6 @@
 #include <pluginlib/class_list_macros.h>
-#include "global_planner.h"
-#include "rpastar.h"
+#include "../include/global_planner.h"
+#include "../include/rpastar.h"
 
 //register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanner)
