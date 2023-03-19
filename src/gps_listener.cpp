@@ -6,8 +6,8 @@
 #include <cmath>
 #include <utility>
 #include <deque>
-#include "geometry_msgs/Point.msg"
-#include "std_msgs/UInt32MultiArray"
+#include "geometry_msgs/Point.h"
+#include "std_msgs/UInt32MultiArray.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Vector3.h"
 
