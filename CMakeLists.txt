@@ -16,10 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
   )
 
 #moved service files before catkin package
-add_service_files(
-  FILES
-  servicemsg.srv
-)
+#add_service_files(
+ # FILES
+  #servicemsg.srv
+#)
 
 catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core cartographer_ros_msgs geometry_msgs) 
 
