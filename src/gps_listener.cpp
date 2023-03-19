@@ -10,20 +10,24 @@
 #include "std_msgs/UInt32MultiArray.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Vector3.h"
+#include "std_msgs/Float64.h"
+#include "tf2_msgs/TFMessage.h"
 
 using std::string;
+using std::pair;
+
 // globalsZ
 // std_msgs::float64 origin_x, origin_y;
 
 //Starts as longitude then latitude.
 // This is for the final queue of x, y values to be sent to the global frame.
-std::deque< pair<std_msgs::float64, std_msgs::float64> > GOAL_POINTS;
+std::deque< pair<double, double> > GOAL_POINTS;
 
 // srv function boolean:
-bool service_callback(std_msgs/geometry_msgs::Point::Response &res) {
-    res.x = GOAL_POINTS.top().first;
-    res.y = GOAL_POINTS.top().second;
-    GOAL_POINTS.pop();
+bool service_callback(geometry_msgs::Point &req, geometry_msgs::Point &res) {
+    res.x = GOAL_POINTS.front().first;
+    res.y = GOAL_POINTS.front().second;
+    GOAL_POINTS.pop_front();
     ROS_INFO("Index of current goal: ", res);
     return true;
 }
@@ -32,7 +36,7 @@ class GPSdata
 {
 public:
     // Get from tf transform function.
-    std_msgs::float64 rob_x, rob_y;
+    double rob_x, rob_y;
     sensor_msgs::NavSatFix gpsMsg;
     
     GPSdata(ros::NodeHandle nh_)
@@ -43,19 +47,19 @@ public:
     }
     
     //reads the text file of gps coords and returns correct x y coords
-    std::deque< pair<std_msgs::float64, std_msgs::float64> read_goal_coords() {
+    std::deque< pair<double, double>> read_goal_coords() {
         std::ifstream in;
-        std::deque< pair<std_msgs::float64, std_msgs::float64> goals;
+        std::deque<pair<double, double>> goals;
         in.open("given_coords.txt");
         string line = "";
         for (int i = 0; i<5; i++) {
             getline(in, line); 
             in >> line;
             line.erase(line.end() - 1);
-            float longitude = stof(line);
+            double longitude = stof(line);
             in >> line;
-            float latitude = stof(line);
-            goals.push( make_pair(longitude, latitude));            
+            double latitude = stof(line);
+            goals.push_back(std::make_pair(longitude, latitude));            
             // get rid of remaining newline
             getline(in, line);
             getline(in, line);
@@ -68,8 +72,8 @@ public:
         for (size_t i = 0; i < GOAL_POINTS.size(); i++) {
             auto x_point = std::make_pair(GOAL_POINTS[i].first, gpsMsg.latitude);
             auto y_point = std::make_pair(gpsMsg.longitude, GOAL_POINTS[i].second);
-            std_msgs::float64 x_dist = distance_between_points(x_point, std::make_pair(gpsMsg.longitude, gpsMsg.latitude));
-            std_msgs::float64 y_dist = distance_between_points(y_point, std::make_pair(gpsMsg.longitude, gpsMsg.latitude));
+            double x_dist = distance_between_points(x_point, std::make_pair(gpsMsg.longitude, gpsMsg.latitude));
+            double y_dist = distance_between_points(y_point, std::make_pair(gpsMsg.longitude, gpsMsg.latitude));
             GOAL_POINTS[i].first = x_dist + rob_x;
             GOAL_POINTS[i].second = y_dist + rob_y;
         }
@@ -95,8 +99,8 @@ private:
         rob_y = msg->transforms[0].transform.translation.y;
     }
 
-    std_msgs::float64 distance_between_points(std::pair<std_msgs::float64, 
-                        std_msgs::float64> current, std::pair<std_msgs::float64, std_msgs::float64> target)
+    double distance_between_points(std::pair<double, 
+                        double> current, std::pair<double, double> target)
     {
         // haversine formula
         double R = 6371e3; // meters
@@ -134,10 +138,12 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     GPSdata gps_node(nh);
     
-    // read in given_cords.txt
-    GOAL_POINTS = read_goal_coords();
+    // read in givtxt
+    GOAL_POINTS = gps_node.read_goal_coords();
 
     gps_node.gps_transform();
+
+  
 
     ros::ServiceServer service = nh.advertiseService("goal_coords", service_callback);
 
@@ -146,12 +152,13 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         // GPS Transform part (Subscribing)
-        // gpsLong = gps_node.gpsMsg.longitude;
-        // gpsLat = gps_node.gpsMsg.latitude;
+        //double gpsLong = gps_node.gpsMsg.longitude;
+        //double gpsLat = gps_node.gpsMsg.latitude;
 
         // gps_transform(gps_node);
-        ROS_INFO("Current Latitude: %f", gpsLat);
-        ROS_INFO("Current Longitude: %f", gpsLong);
+        //ROS_INFO("Current Latitude: %f", gpsLat);
+        //ROS_INFO("Current Longitude: %f", gpsLong);
+
         ros::spinOnce();
         rate.sleep();
     }
