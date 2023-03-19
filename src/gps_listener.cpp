@@ -28,7 +28,7 @@ bool service_callback(geometry_msgs::Point &req, geometry_msgs::Point &res) {
     res.x = GOAL_POINTS.front().first;
     res.y = GOAL_POINTS.front().second;
     GOAL_POINTS.pop_front();
-    ROS_INFO("Index of current goal: ", res);
+    //ROS_INFO("Index of current goal: ", res);
     return true;
 }
 
@@ -88,7 +88,7 @@ private:
     {
         // might need to fix this later
         gpsMsg = *msg;
-        ROS_INFO("GPS: %f, %f", msg->latitude, msg->longitude);
+        // ROS_INFO("GPS: %f, %f", msg->latitude, msg->longitude);
         return;
     }
 
