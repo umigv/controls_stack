@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
   tf2_msgs
+  std_srvs
   )
 
 #moved service files before catkin package
@@ -22,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   #servicemsg.srv
 #)
 
-catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core geometry_msgs message_runtime tf2_msgs) 
+catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core geometry_msgs message_runtime tf2_msgs std_srvs) 
 
 include_directories(
     ${catkin_INCLUDE_DIRS}

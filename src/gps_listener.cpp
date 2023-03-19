@@ -12,6 +12,8 @@
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/Float64.h"
 #include "tf2_msgs/TFMessage.h"
+#include "std_srvs/Empty.h"
+
 
 using std::string;
 using std::pair;
@@ -24,7 +26,7 @@ using std::pair;
 std::deque< pair<double, double> > GOAL_POINTS;
 
 // srv function boolean:
-bool service_callback(geometry_msgs::Point &req, geometry_msgs::Point &res) {
+bool service_callback(std_srvs::Empty::Request &req, geometry_msgs::Point &res) {
     res.x = GOAL_POINTS.front().first;
     res.y = GOAL_POINTS.front().second;
     GOAL_POINTS.pop_front();
