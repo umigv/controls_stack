@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   #servicemsg.srv
 #)
 
-catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core cartographer_ros_msgs geometry_msgs) 
+catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core) 
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
