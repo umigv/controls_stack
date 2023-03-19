@@ -133,6 +133,7 @@ int main(int argc, char **argv)
 
     // Initializing the node
     ros::init(argc, argv, "gps_listener");
+    ros::ServiceServer;
 
     // Initializing the node for the GPS
     ros::NodeHandle nh;
