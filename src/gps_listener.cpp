@@ -55,7 +55,7 @@ public:
             float longitude = stof(line);
             in >> line;
             float latitude = stof(line);
-            goals.push( make_pair(longitude, latitude) );            
+            goals.push( make_pair(longitude, latitude));            
             // get rid of remaining newline
             getline(in, line);
             getline(in, line);
@@ -95,28 +95,28 @@ private:
         rob_y = msg->transforms[0].transform.translation.y;
     }
 
-};
-
-std_msgs::float64 distance_between_points(std::pair<std_msgs::float64, 
+    std_msgs::float64 distance_between_points(std::pair<std_msgs::float64, 
                         std_msgs::float64> current, std::pair<std_msgs::float64, std_msgs::float64> target)
-{
-    // haversine formula
-    double R = 6371e3; // meters
-    double phi1 = current.first * M_PI / 180; // φ, λ in radians
-    double phi2 = target.first * M_PI / 180;
-    double delta_phi = (target.first - current.first) * M_PI / 180;
-    double delta_lambda = (target.second - current.second) * M_PI / 180;
+    {
+        // haversine formula
+        double R = 6371e3; // meters
+        double phi1 = current.first * M_PI / 180; // φ, λ in radians
+        double phi2 = target.first * M_PI / 180;
+        double delta_phi = (target.first - current.first) * M_PI / 180;
+        double delta_lambda = (target.second - current.second) * M_PI / 180;
 
-    double a = sin(delta_phi / 2) * sin(delta_phi / 2) +
-               cos(phi1) * cos(phi2) *
-               sin(delta_lambda / 2) * sin(delta_lambda / 2);
-    
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+        double a = sin(delta_phi / 2) * sin(delta_phi / 2) +
+                cos(phi1) * cos(phi2) *
+                sin(delta_lambda / 2) * sin(delta_lambda / 2);
+        
+        double c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
-    double d = R * c; // in meters
+        double d = R * c; // in meters
 
-    return d;
-}
+        return d;
+    }
+
+};
 
 
 int main(int argc, char **argv)

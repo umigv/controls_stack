@@ -4,9 +4,24 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gps_transform)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs global_planner move_base nav_core)
+find_package(catkin REQUIRED COMPONENTS 
+  roscpp std_msgs 
+  global_planner 
+  move_base 
+  nav_core 
+  # Added cartographer_ros_msgs and geometry_msgs
+  cartographer_ros_msgs 
+  geometry_msgs
+  
+  )
 
-catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core)
+#moved service files before catkin package
+add_service_files(
+  FILES
+  servicemsg.srv
+)
+
+catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core cartographer_ros_msgs geometry_msgs) 
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
@@ -24,11 +39,5 @@ install(TARGETS ${PROJECT_NAME}_node
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
  )
- 
- add_service_files(
-  FILES
-  servicemsg.srv
-)
-
 
 # %EndTag(FULLTEXT)%
