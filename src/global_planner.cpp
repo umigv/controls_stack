@@ -71,7 +71,6 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     // rpastar runner = rpastar::rpastar(start, end, &map);
     rpastar runner(first, last, costmap_);
     runner.search();
-    std::cout << "back to callback\n";
     if (runner.goal_found())
     {
         std::vector<std::pair<int,int>> path = runner.backtracker();

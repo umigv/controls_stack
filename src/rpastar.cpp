@@ -75,12 +75,11 @@ bool rpastar::goal_found()
 
 void rpastar::search()
 {
-    std::cout << "start search\n";
     path_found = false;
     while (!U.empty())
     {
         Node current_node = U.top();
-        std::cout << current_node.get_state().first << ", " << current_node.get_state().second << std::endl;
+        // std::cout << current_node.get_state().first << ", " << current_node.get_state().second << std::endl;
         U.pop();
         open_set.erase(current_node.get_state());
         if (current_node.at_target(target_state))
@@ -101,7 +100,6 @@ void rpastar::search()
         // processNode(i+1, j+1, &current_node); // south-west
         closed_set[current_node.get_state()] = current_node.get_f_score();
     }
-    std::cout << "end search\n";
 
 }
 

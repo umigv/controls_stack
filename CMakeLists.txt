@@ -224,6 +224,6 @@ target_link_libraries(goal_pub ${catkin_LIBRARIES})
 add_dependencies(goal_pub startup_generate_messages_cpp)
 
 add_library(global_planner_lib src/global_planner.cpp)
-target_link_libraries(global_planner_lib ${catkin_LIBRARIES} rpastar)
+target_link_libraries(global_planner_lib ${catkin_LIBRARIES} rpastar_lib)
 
 target_include_directories(global_planner_lib PRIVATE include)
