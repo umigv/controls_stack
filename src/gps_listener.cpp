@@ -13,6 +13,7 @@
 #include "std_msgs/Float64.h"
 #include "tf2_msgs/TFMessage.h"
 #include "std_srvs/Empty.h"
+#include "servicemsg.srv"
 
 
 using std::string;
