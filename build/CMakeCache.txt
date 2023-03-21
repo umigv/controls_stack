@@ -27,13 +27,19 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=beginner_tutorials
+CMAKE_PROJECT_NAME:STATIC=gps_transform
 
 //Value Computed by CMake
 beginner_tutorials_BINARY_DIR:STATIC=/home/kjdih2/catkin_ws/src/controls_stack/build
 
 //Value Computed by CMake
 beginner_tutorials_SOURCE_DIR:STATIC=/home/kjdih2/catkin_ws/src/controls_stack
+
+//Value Computed by CMake
+gps_transform_BINARY_DIR:STATIC=/home/kjdih2/catkin_ws/src/controls_stack/build
+
+//Value Computed by CMake
+gps_transform_SOURCE_DIR:STATIC=/home/kjdih2/catkin_ws/src/controls_stack
 
 
 ########################

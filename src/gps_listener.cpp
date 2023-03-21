@@ -13,6 +13,7 @@
 #include "std_msgs/Float64.h"
 #include "tf2_msgs/TFMessage.h"
 #include "std_srvs/Empty.h"
+#include "std_srvs/Trigger.h"
 
 
 using std::string;
@@ -26,13 +27,19 @@ using std::pair;
 std::deque< pair<double, double> > GOAL_POINTS;
 
 // srv function boolean:
-bool service_callback(std_srvs::Empty::Request &req, geometry_msgs::Point &res) {
-    res.x = GOAL_POINTS.front().first;
-    res.y = GOAL_POINTS.front().second;
+bool service_callback(std_srvs::Empty::Request &req, std_srvs::Trigger::Response &res) {
+    string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
+    // res.x = GOAL_POINTS.front().first;
+    // res.y = GOAL_POINTS.front().second;
+
     GOAL_POINTS.pop_front();
     //ROS_INFO("Index of current goal: ", res);
+    res.success = true;
+    res.message = returnString;
     return true;
 }
+
+
 
 class GPSdata
 {
