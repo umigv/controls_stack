@@ -22,4 +22,4 @@
 # For example, [(2.0, 4.0), (6.0, 8.0), ...]
 
 ---
-geometry_msgs/Point goal_coords 
+# TODO: put msg type for trigger here

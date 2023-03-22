@@ -2,7 +2,7 @@
 <package format="2">
   <name>gps_transform</name>
   <version>0.0.0</version>
-  <description>The startup package</description>
+  <description>GPS Package. Converts long lat coords to global coords.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

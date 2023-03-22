@@ -29,14 +29,14 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/gps_listener.cpp)
+add_executable(gps src/gps_listener.cpp)
 
-target_link_libraries(${PROJECT_NAME}_node
+target_link_libraries(gps
     ${catkin_LIBRARIES}
 )
 
 
-install(TARGETS ${PROJECT_NAME}_node
+install(TARGETS gps
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

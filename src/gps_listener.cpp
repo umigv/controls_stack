@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include <string>
 #include <iostream>
+#include <filesystem>
 #include <vector>
 #include <fstream>
 #include <cmath>
@@ -27,19 +28,18 @@ using std::pair;
 std::deque< pair<double, double> > GOAL_POINTS;
 
 // srv function boolean:
-bool service_callback(std_srvs::Empty::Request &req, std_srvs::Trigger::Response &res) {
+// bool service_callback(std_srvs::Empty::Request &req, std_srvs::Trigger::Response &res) {
+bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
     string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
     // res.x = GOAL_POINTS.front().first;
     // res.y = GOAL_POINTS.front().second;
 
     GOAL_POINTS.pop_front();
     //ROS_INFO("Index of current goal: ", res);
-    res.success = true;
-    res.message = returnString;
+    // res.success = true;
+    // res.message = returnString;
     return true;
 }
-
-
 
 class GPSdata
 {
@@ -59,21 +59,31 @@ public:
     std::deque< pair<double, double>> read_goal_coords() {
         std::ifstream in;
         std::deque<pair<double, double>> goals;
-        in.open("given_coords.txt");
-        string line = "";
-        for (int i = 0; i<5; i++) {
-            getline(in, line); 
-            in >> line;
-            line.erase(line.end() - 1);
-            double longitude = stof(line);
-            in >> line;
-            double latitude = stof(line);
-            goals.push_back(std::make_pair(longitude, latitude));            
-            // get rid of remaining newline
-            getline(in, line);
-            getline(in, line);
-        }       
-        in.close();
+        
+        // in.open("given_coords.txt");
+        // string line = "";
+        // for (int i = 0; i<5; i++) {
+        //     getline(in, line);
+        //     in >> line;
+        //     // line.erase(line.end() - 1);
+        //     std::cout << "stof test" << std::endl;
+        //     std::cout << line << std::endl;
+        //     double longitude = stof(line);
+        //     in >> line;
+        //     double latitude = stof(line);
+        //     goals.push_back(std::make_pair(longitude, latitude));            
+        //     // get rid of remaining newline
+        //     // getline(in, line);
+        //     // getline(in, line);       
+        // in.close();
+
+        goals.push_back(std::make_pair(0, 1));
+        goals.push_back(std::make_pair(0, 1));
+        goals.push_back(std::make_pair(1, 1));
+        goals.push_back(std::make_pair(1, 0));
+        goals.push_back(std::make_pair(0, 0));
+        
+
         return goals;
     }
 
