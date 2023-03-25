@@ -35,6 +35,7 @@ bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Respon
     // res.y = GOAL_POINTS.front().second;
 
     GOAL_POINTS.pop_front();
+    // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
     //ROS_INFO("Index of current goal: ", res);
     res.success = true;
     res.message = returnString;
