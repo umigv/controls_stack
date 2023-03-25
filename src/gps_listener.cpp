@@ -28,16 +28,16 @@ using std::pair;
 std::deque< pair<double, double> > GOAL_POINTS;
 
 // srv function boolean:
-// bool service_callback(std_srvs::Empty::Request &req, std_srvs::Trigger::Response &res) {
-bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
+// bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
     string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
     // res.x = GOAL_POINTS.front().first;
     // res.y = GOAL_POINTS.front().second;
 
     GOAL_POINTS.pop_front();
     //ROS_INFO("Index of current goal: ", res);
-    // res.success = true;
-    // res.message = returnString;
+    res.success = true;
+    res.message = returnString;
     return true;
 }
 
