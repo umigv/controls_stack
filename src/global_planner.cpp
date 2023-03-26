@@ -77,12 +77,19 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
         std::cout << "Path found!" << std::endl;
         generate_path(costmap_,path,plan);
     }
+    std::cout << "done with make plan\n";
+
     return true;
 }
 
-geometry_msgs::PoseStamped GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<std::pair<int,int>> &path, std::vector<geometry_msgs::PoseStamped>& plan)
+void GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<std::pair<int,int>> &path, std::vector<geometry_msgs::PoseStamped>& plan)
 {
     geometry_msgs::PoseStamped pose;
+    pose.pose.orientation.w = 0.5;
+    pose.pose.orientation.x = 0.5;
+    pose.pose.orientation.y = 0.5;
+    pose.pose.orientation.z = 0.5;
+
     for (int i = 0; i < path.size(); i++)
     {
         float global_x = (path[i].first*map->getResolution()) + map->getOriginX();
@@ -92,6 +99,8 @@ geometry_msgs::PoseStamped GlobalPlanner::generate_path(const costmap_2d::Costma
         pose.header.frame_id = "map";
         plan.push_back(pose);
     }
+
+    return;
 }
 
 };

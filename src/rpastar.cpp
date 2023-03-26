@@ -109,7 +109,7 @@ void rpastar::processNode(int row, int col, Node *parent)
     {
         return;
     }
-    if (cost_map[row][col] > threshold)
+    if (cost_map[row][col] > 128 && cost_map[row][col] < 254)
     {
         return;
     }
@@ -191,5 +191,8 @@ std::vector<std::pair<int,int>> rpastar::backtracker()
         path.push_back(curr_node->get_state());
         curr_node = curr_node->get_parent();
     }
+
+    std::reverse(path.begin(), path.end());
+
     return path;
 }
