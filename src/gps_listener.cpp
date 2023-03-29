@@ -27,14 +27,22 @@ using std::pair;
 // This is for the final queue of x, y values to be sent to the global frame.
 std::deque< pair<double, double> > GOAL_POINTS;
 
+bool location_is_close(pair<double, double>)
+{
+    // TO DO!!
+    
+}
+
 // srv function boolean:
 bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
 // bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
     string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
     // res.x = GOAL_POINTS.front().first;
     // res.y = GOAL_POINTS.front().second;
-
-    GOAL_POINTS.pop_front();
+    if (location_is_close(GOAL_POINTS.front()))
+    {
+        GOAL_POINTS.pop_front();
+    }
     // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
     //ROS_INFO("Index of current goal: ", res);
     res.success = true;
@@ -83,8 +91,6 @@ public:
         goals.push_back(std::make_pair(1, 1));
         goals.push_back(std::make_pair(1, 0));
         goals.push_back(std::make_pair(0, 0));
-        
-
         return goals;
     }
 
