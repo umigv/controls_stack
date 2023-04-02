@@ -23,33 +23,6 @@ using std::pair;
 // globalsZ
 // std_msgs::float64 origin_x, origin_y;
 
-//Starts as longitude then latitude.
-// This is for the final queue of x, y values to be sent to the global frame.
-std::deque< pair<double, double> > GOAL_POINTS;
-
-bool location_is_close(pair<double, double>)
-{
-    // TO DO!!
-    
-}
-
-// srv function boolean:
-bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
-// bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
-    string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
-    // res.x = GOAL_POINTS.front().first;
-    // res.y = GOAL_POINTS.front().second;
-    if (location_is_close(GOAL_POINTS.front()))
-    {
-        GOAL_POINTS.pop_front();
-    }
-    // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
-    //ROS_INFO("Index of current goal: ", res);
-    res.success = true;
-    res.message = returnString;
-    return true;
-}
-
 class GPSdata
 {
 public:
@@ -65,9 +38,9 @@ public:
     }
     
     //reads the text file of gps coords and returns correct x y coords
-    std::deque< pair<double, double>> read_goal_coords() {
+    void read_goal_coords() {
         std::ifstream in;
-        std::deque<pair<double, double>> goals;
+        // std::deque<pair<double, double>> goals;
         
         // in.open("given_coords.txt");
         // string line = "";
@@ -86,12 +59,12 @@ public:
         //     // getline(in, line);       
         // in.close();
 
-        goals.push_back(std::make_pair(0, 1));
-        goals.push_back(std::make_pair(0, 1));
-        goals.push_back(std::make_pair(1, 1));
-        goals.push_back(std::make_pair(1, 0));
-        goals.push_back(std::make_pair(0, 0));
-        return goals;
+        GOAL_POINTS.push_back(std::make_pair(0, 1));
+        GOAL_POINTS.push_back(std::make_pair(0, 1));
+        GOAL_POINTS.push_back(std::make_pair(1, 1));
+        GOAL_POINTS.push_back(std::make_pair(1, 0));
+        GOAL_POINTS.push_back(std::make_pair(0, 0));
+        GOAL_GPS = GOAL_POINTS;
     }
 
     void gps_transform() {
@@ -104,7 +77,28 @@ public:
             GOAL_POINTS[i].second = y_dist + rob_y;
         }
     }
-    
+    // srv function boolean:
+    bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
+    // bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+        string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
+        // res.x = GOAL_POINTS.front().first;
+        // res.y = GOAL_POINTS.front().second;
+        if (location_is_close(GOAL_GPS.front()))
+        {
+            GOAL_POINTS.pop_front();
+            GOAL_GPS.pop_front();
+        }
+        // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
+        //ROS_INFO("Index of current goal: ", res);
+        res.success = true;
+        res.message = returnString;
+        return true;
+    }
+    //Starts as longitude then latitude.
+    // This is for the final queue of x, y values to be sent to the global frame.
+    std::deque< pair<double, double> > GOAL_POINTS;
+    //This 
+    std::deque< pair<double, double> > GOAL_GPS;
 private:
     // Subscriber
     ros::Subscriber gps_sub;
@@ -146,6 +140,19 @@ private:
         return d;
     }
 
+    // REQUIRES: takes in front of GOAL_POINTS
+    // MODIFIES: queue containing the coordinates
+    // EFFECTS: 
+    bool location_is_close(std::pair<double, double> goal_coords) {
+        std::pair<double, double> gps_coords = std::make_pair(gpsMsg.longitude, gpsMsg.latitude);
+        double dist = distance_between_points(goal_coords, gps_coords);
+        ROS_INFO("Distance between us and goal ", dist);
+        if (dist < 1.0) {
+        // distance between goal_coords and gps_coords is less than 1 m
+            return true;
+        }
+        return false;
+    }
 };
 
 
@@ -165,13 +172,12 @@ int main(int argc, char **argv)
     GPSdata gps_node(nh);
     
     // read in givtxt
-    GOAL_POINTS = gps_node.read_goal_coords();
+    gps_node.read_goal_coords();
 
     gps_node.gps_transform();
 
-  
-
-    ros::ServiceServer service = nh.advertiseService("goal_coords", service_callback);
+    ros::ServiceServer service = nh.advertiseService("goal_coords", &GPSdata::service_callback, &gps_node);
+    
 
 
     ros::Rate rate(10);
