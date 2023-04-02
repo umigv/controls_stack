@@ -59,10 +59,15 @@ public:
         //     // getline(in, line);       
         // in.close();
 
-        GOAL_POINTS.push_back(std::make_pair(0, 1));
-        GOAL_POINTS.push_back(std::make_pair(0, 1));
-        GOAL_POINTS.push_back(std::make_pair(1, 1));
+        //First goal
+        GOAL_POINTS.push_back(std::make_pair(42.29486579614356, -83.70744180087384));
+        //Second goal
+        GOAL_POINTS.push_back(std::make_pair(42.2949986, -83.7071658));
+        //Third goal
+        GOAL_POINTS.push_back(std::make_pair(42.2951648, -83.7072553));
+        //Fourth goal
         GOAL_POINTS.push_back(std::make_pair(1, 0));
+        // Fifth goal
         GOAL_POINTS.push_back(std::make_pair(0, 0));
         GOAL_GPS = GOAL_POINTS;
     }
