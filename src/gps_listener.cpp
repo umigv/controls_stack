@@ -60,7 +60,8 @@ public:
         // in.close();
 
         //First goal
-        GOAL_POINTS.push_back(std::make_pair(42.29486579614356, -83.70744180087384));
+        //GOAL_POINTS.push_back(std::make_pair(42.29486579614356, -83.70744180087384));
+        GOAL_POINTS.push_back(std::make_pair(-83.70744180087384, 42.29486579614356));
         //Second goal
         GOAL_POINTS.push_back(std::make_pair(42.2949986, -83.7071658));
         //Third goal
@@ -93,8 +94,13 @@ public:
             GOAL_POINTS.pop_front();
             GOAL_GPS.pop_front();
         }
+
+        ROS_INFO("Cartographer x %f", rob_x);
+        ROS_INFO("Cartographer y %f", rob_y);
         // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
-        //ROS_INFO("Index of current goal: ", res);
+        ROS_INFO("Index of current goal: ", res);
+        ROS_INFO("Current GPS long: %f", gpsMsg.longitude);
+        ROS_INFO("Current GPS lat: %f", gpsMsg.latitude);
         res.success = true;
         res.message = returnString;
         return true;
@@ -122,6 +128,8 @@ private:
         // update current location of robot in global frame (x,y in meters)
         rob_x = msg->transforms[0].transform.translation.x;
         rob_y = msg->transforms[0].transform.translation.y;
+
+
     }
 
     double distance_between_points(std::pair<double, 
@@ -151,7 +159,10 @@ private:
     bool location_is_close(std::pair<double, double> goal_coords) {
         std::pair<double, double> gps_coords = std::make_pair(gpsMsg.longitude, gpsMsg.latitude);
         double dist = distance_between_points(goal_coords, gps_coords);
-        ROS_INFO("Distance between us and goal ", dist);
+        float temp = static_cast<float>(dist);
+        ROS_INFO("Current goal long %f", goal_coords.first);
+        ROS_INFO("Current goal lat %f", goal_coords.second);
+        ROS_INFO("Distance between us and goal %f", temp);
         if (dist < 1.0) {
         // distance between goal_coords and gps_coords is less than 1 m
             return true;
