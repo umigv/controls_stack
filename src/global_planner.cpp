@@ -8,6 +8,9 @@ PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanne
 using namespace std;
 
 
+bool checkPlan(const std::vector<geometry_msgs::PoseStamped>& plan, costmap_2d::Costmap2D* costmap);
+
+
 //Default Constructor
 namespace global_planner {
 
@@ -29,6 +32,7 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costm
         world_model_ = new base_local_planner::CostmapModel(*costmap_); 
 
         initialized_ = true;
+
     }
     else
         ROS_WARN("This planner has already been initialized... doing nothing");
@@ -42,7 +46,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
     ROS_DEBUG("Got a start: %.2f, %.2f, and a goal: %.2f, %.2f", start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y);
 
-    plan.clear();
+    plan.clear();   
     costmap_ = costmap_ros_->getCostmap();
 
     if(goal.header.frame_id != costmap_ros_->getGlobalFrameID()){
@@ -65,17 +69,27 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     // }
     std::cout << pos_x << " " << pos_y << std::endl;
     std::cout << goal_x << " " << goal_y << std::endl;
-    std::cout << "Running A*..." << std::endl << std::endl;
-    std::pair<int,int> first(pos_y, pos_x);
-    std::pair<int,int> last(goal_y, goal_x);
-    // rpastar runner = rpastar::rpastar(start, end, &map);
-    rpastar runner(first, last, costmap_);
-    runner.search();
-    if (runner.goal_found())
-    {
-        std::vector<std::pair<int,int>> path = runner.backtracker();
-        std::cout << "Path found!" << std::endl;
-        generate_path(costmap_,path,plan);
+    
+    
+    if(!checkPlan(old_plan, costmap_)) {
+        std::cout << "Running A*..." << std::endl << std::endl;
+        std::pair<int,int> first(pos_y, pos_x);
+        std::pair<int,int> last(goal_y, goal_x);
+        // rpastar runner = rpastar::rpastar(start, end, &map);
+        rpastar runner(first, last, costmap_);
+        runner.search();
+        if (runner.goal_found())
+        {
+            std::vector<std::pair<int,int>> path = runner.backtracker();
+            std::cout << "Path found!" << std::endl;
+            generate_path(costmap_,path,plan);
+            old_plan = plan;
+        }
+    }
+    else {
+        std::cout << "Path still clear\n";
+        plan = old_plan;
+        
     }
     std::cout << "done with make plan\n";
 
@@ -104,4 +118,40 @@ void GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<
 }
 
 };
+
+
+// Returns true if path is still valid, so we don't need to rerun a*; returns false if path is
+// blocked or empty, need to run a*
+bool checkPlan(const std::vector<geometry_msgs::PoseStamped>& plan, costmap_2d::Costmap2D* costmap ) {
+    
+    std::cout << "checking path....\n";
+     if (plan.empty()) {
+        std::cout << "Plan is empty\n";
+        return false;
+    }
+
+    for(int i = 0 ; i < plan.size(); i++){
+        geometry_msgs::PoseStamped curr_pos = plan[i];
+        
+        uint64_t pos_x = (uint64_t)((curr_pos.pose.position.x - costmap->getOriginX()) / costmap->getResolution());
+        uint64_t pos_y = (uint64_t)((curr_pos.pose.position.y - costmap->getOriginY()) / costmap->getResolution());
+        
+        // getCost returns unsigned char
+        int cost = costmap->getCost(pos_x, pos_y);
+        std::cout << " cost : " << cost << "\n"; 
+        if(cost >= LOW_THRESHOLD && cost <= UPPER_THRESHOLD){
+            return false;
+        }
+    } 
+    return true;
+}     
+    
+
+    
+        
+    
+    
+
+
+
 

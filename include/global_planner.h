@@ -14,6 +14,10 @@ using std::string;
 #ifndef GLOBAL_PLANNER_CPP
 #define GLOBAL_PLANNER_CPP
 
+// Greater than or equal to THRESHOLD and less than or equal to UPPER_THRESHOLD is obstacle; 
+static const int LOW_THRESHOLD = 128;
+static const int UPPER_THRESHOLD = 254;
+
 namespace global_planner {
 
 class GlobalPlanner : public nav_core::BaseGlobalPlanner {
@@ -34,6 +38,7 @@ private:
        double step_size_, min_dist_from_robot_;
        costmap_2d::Costmap2D* costmap_;
        base_local_planner::WorldModel* world_model_; 
+       std::vector<geometry_msgs::PoseStamped> old_plan;
  
  
        bool initialized_;
