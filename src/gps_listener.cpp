@@ -7,6 +7,7 @@
 #include <cmath>
 #include <utility>
 #include <deque>
+#include <iomanip>
 #include "geometry_msgs/Point.h"
 #include "std_msgs/UInt32MultiArray.h"
 #include "sensor_msgs/NavSatFix.h"
@@ -16,100 +17,96 @@
 #include "std_srvs/Empty.h"
 #include "std_srvs/Trigger.h"
 
-
 using std::string;
 using std::pair;
 
 // globalsZ
 // std_msgs::float64 origin_x, origin_y;
 
+struct Coordinate {
+    Coordinate(double latIN, double longIN):latitude(latIN), longitude(longIN){}
+    double latitude;
+    double longitude;
+};
+
 class GPSdata
 {
 public:
+    //LATITUDE, LONGITUDE
+    // This is for the final queue of x, y values to be sent to the global frame.
+    std::deque<Coordinate> GOAL_POINTS; //This 
+    std::deque<Coordinate> GOAL_GPS;
     // Get from tf transform function.
     double rob_x, rob_y;
     sensor_msgs::NavSatFix gpsMsg;
+    uint32_t indexOfCurrentGoal = 1;
     
-    GPSdata(ros::NodeHandle nh_)
-    {
+    GPSdata(ros::NodeHandle nh_) {
         gps_sub = nh_.subscribe("/gps/fix", 100, &GPSdata::gpsCallback, this);
-        cartographer_sub = nh_.subscribe("/tf", 100, &GPSdata::cartographerCallback, this); // gives x,y coords
+        cartographer_sub = nh_.subscribe("/tf_static", 100, &GPSdata::cartographerCallback, this); // gives x,y coords
         // occupancy_sub = nh_.subscribe("/map", 100, &GPSdata::occupancyCallback, this); // gives origin
     }
     
     //reads the text file of gps coords and returns correct x y coords
     void read_goal_coords() {
-        std::ifstream in;
-        // std::deque<pair<double, double>> goals;
-        
-        // in.open("given_coords.txt");
-        // string line = "";
-        // for (int i = 0; i<5; i++) {
-        //     getline(in, line);
-        //     in >> line;
-        //     // line.erase(line.end() - 1);
-        //     std::cout << "stof test" << std::endl;
-        //     std::cout << line << std::endl;
-        //     double longitude = stof(line);
-        //     in >> line;
-        //     double latitude = stof(line);
-        //     goals.push_back(std::make_pair(longitude, latitude));            
-        //     // get rid of remaining newline
-        //     // getline(in, line);
-        //     // getline(in, line);       
-        // in.close();
+        //std::ifstream in;
 
         //First goal
-        //GOAL_POINTS.push_back(std::make_pair(42.29486579614356, -83.70744180087384));
-        GOAL_POINTS.push_back(std::make_pair(-83.70744180087384, 42.29486579614356));
-        //Second goal
-        GOAL_POINTS.push_back(std::make_pair(42.2949986, -83.7071658));
-        //Third goal
-        GOAL_POINTS.push_back(std::make_pair(42.2951648, -83.7072553));
+        GOAL_POINTS.emplace_back(42.2943605, -83.7078159);
+        GOAL_POINTS.emplace_back(42.2948523, -83.7074270);
+        //Second goal        
+        GOAL_POINTS.emplace_back(42.2949986, -83.7071658);
+        //Third goal        
+        GOAL_POINTS.emplace_back(42.2951648, -83.7072553);
         //Fourth goal
-        GOAL_POINTS.push_back(std::make_pair(1, 0));
+        GOAL_POINTS.emplace_back(42.2954532, -83.7074961);
         // Fifth goal
-        GOAL_POINTS.push_back(std::make_pair(0, 0));
+        //GOAL_POINTS.emplace_back(42.2953044, -83.7078059);
+        //other points: (42.2951001, -83.7080617)
         GOAL_GPS = GOAL_POINTS;
     }
 
     void gps_transform() {
         for (size_t i = 0; i < GOAL_POINTS.size(); i++) {
-            auto x_point = std::make_pair(GOAL_POINTS[i].first, gpsMsg.latitude);
-            auto y_point = std::make_pair(gpsMsg.longitude, GOAL_POINTS[i].second);
-            double x_dist = distance_between_points(x_point, std::make_pair(gpsMsg.longitude, gpsMsg.latitude));
-            double y_dist = distance_between_points(y_point, std::make_pair(gpsMsg.longitude, gpsMsg.latitude));
-            GOAL_POINTS[i].first = x_dist + rob_x;
-            GOAL_POINTS[i].second = y_dist + rob_y;
+            Coordinate x_point(gpsMsg.latitude, GOAL_POINTS[i].longitude);
+            Coordinate y_point(GOAL_POINTS[i].latitude, gpsMsg.longitude);
+
+            Coordinate currentLocation(gpsMsg.latitude, gpsMsg.longitude);
+            double x_dist = distance_between_points(x_point, currentLocation);
+            double y_dist = distance_between_points(y_point, currentLocation);
+            
+            GOAL_POINTS[i].latitude = x_dist;
+            GOAL_POINTS[i].longitude = y_dist;
         }
     }
     // srv function boolean:
     bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
     // bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
-        string returnString = std::to_string(GOAL_POINTS.front().first) + "|" + std::to_string(GOAL_POINTS.front().second);
-        // res.x = GOAL_POINTS.front().first;
-        // res.y = GOAL_POINTS.front().second;
+        string returnString = std::to_string(GOAL_POINTS.front().latitude) + "|" + std::to_string(GOAL_POINTS.front().longitude); //lat long issue?
+        Coordinate temp1(0,0);
+        Coordinate temp2(1,1);
+        //ROS_INFO("CHECKING FOR ERROR %f", distance_between_points(temp1, temp2));
+        
         if (location_is_close(GOAL_GPS.front()))
         {
             GOAL_POINTS.pop_front();
             GOAL_GPS.pop_front();
+            indexOfCurrentGoal++;
+            ROS_INFO("MOVED TO NEXT GOAL!!!!!");
         }
-
-        ROS_INFO("Cartographer x %f", rob_x);
-        ROS_INFO("Cartographer y %f", rob_y);
-        // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
-        ROS_INFO("Index of current goal: ", res);
-        ROS_INFO("Current GPS long: %f", gpsMsg.longitude);
-        ROS_INFO("Current GPS lat: %f", gpsMsg.latitude);
+        // ROS_INFO("\n");
+        // ROS_INFO("Cartographer x %f", rob_x);
+        // ROS_INFO("Cartographer y %f", rob_y);
+        // // TODO: Change this to return the "current goal", which only starts returning the next goal when we've reached the current one
+        // ROS_INFO("Index of current goal: %i", indexOfCurrentGoal);
+        // ROS_INFO("Current GPS lat: %f", gpsMsg.latitude);
+        // ROS_INFO("Current GPS long: %f", gpsMsg.longitude);
+        // ROS_INFO("\n");
         res.success = true;
         res.message = returnString;
         return true;
     }
-    //Starts as longitude then latitude.
-    // This is for the final queue of x, y values to be sent to the global frame.
-    std::deque< pair<double, double> > GOAL_POINTS;
-    //This 
-    std::deque< pair<double, double> > GOAL_GPS;
+
 private:
     // Subscriber
     ros::Subscriber gps_sub;
@@ -129,26 +126,44 @@ private:
         rob_x = msg->transforms[0].transform.translation.x;
         rob_y = msg->transforms[0].transform.translation.y;
 
-
     }
 
-    double distance_between_points(std::pair<double, 
-                        double> current, std::pair<double, double> target)
+
+    //Expecting longitude latitude, needs to be latitude longitude.
+    double distance_between_points(Coordinate &current, Coordinate &target)
     {
         // haversine formula
         double R = 6371e3; // meters
-        double phi1 = current.first * M_PI / 180; // φ, λ in radians
-        double phi2 = target.first * M_PI / 180;
-        double delta_phi = (target.first - current.first) * M_PI / 180;
-        double delta_lambda = (target.second - current.second) * M_PI / 180;
+       // ROS_INFO("R Value %f", R);
+        double phi1 = current.latitude * M_PI / 180.0; // φ, λ in radians
+       // ROS_INFO("PI Value %f", M_PI);
+        double phi2 = target.latitude * M_PI / 180.0;
+       // ROS_INFO("phi1 %f", phi1);
+       // ROS_INFO("phi2 %f", phi2);
+        double delta_phi = (target.latitude - current.latitude) * M_PI / 180.0;
+        double delta_lambda = (target.longitude - current.longitude) * M_PI / 180.0;
+       // ROS_INFO("delta_phi %f", delta_phi);
+       // ROS_INFO("delta_lambda %f", delta_lambda);
 
         double a = sin(delta_phi / 2) * sin(delta_phi / 2) +
                 cos(phi1) * cos(phi2) *
                 sin(delta_lambda / 2) * sin(delta_lambda / 2);
-        
+      //  ROS_INFO("a %f", a);
+       // ROS_INFO("first sin %f", sin(delta_phi / 2));
+
         double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+       // ROS_INFO("c %f", c);
 
         double d = R * c; // in meters
+        
+       // ROS_INFO("\n");
+       // ROS_INFO("LAT 1 %f", current.latitude);
+       // ROS_INFO("LONG 1 %f", current.longitude);
+       // ROS_INFO("LAT 2 %f", target.latitude);
+       // ROS_INFO("LONG 2 %f", target.longitude);
+       // ROS_INFO("DISTANCE %f", d);
+       // ROS_INFO("\n");
+
 
         return d;
     }
@@ -156,14 +171,15 @@ private:
     // REQUIRES: takes in front of GOAL_POINTS
     // MODIFIES: queue containing the coordinates
     // EFFECTS: 
-    bool location_is_close(std::pair<double, double> goal_coords) {
-        std::pair<double, double> gps_coords = std::make_pair(gpsMsg.longitude, gpsMsg.latitude);
-        double dist = distance_between_points(goal_coords, gps_coords);
-        float temp = static_cast<float>(dist);
-        ROS_INFO("Current goal long %f", goal_coords.first);
-        ROS_INFO("Current goal lat %f", goal_coords.second);
-        ROS_INFO("Distance between us and goal %f", temp);
-        if (dist < 1.0) {
+    bool location_is_close(Coordinate &goal_coords) {
+        Coordinate currentLocation(gpsMsg.latitude, gpsMsg.longitude);
+        double dist = distance_between_points(goal_coords, currentLocation);
+       // ROS_INFO("\n");
+        ROS_INFO("Current goal lat %f", goal_coords.latitude);
+        ROS_INFO("Current goal long %f", goal_coords.longitude);
+        ROS_INFO("Distance between us and goal %f", dist);
+       // ROS_INFO("\n");
+        if (dist < 1..00) { 
         // distance between goal_coords and gps_coords is less than 1 m
             return true;
         }
@@ -193,8 +209,6 @@ int main(int argc, char **argv)
     gps_node.gps_transform();
 
     ros::ServiceServer service = nh.advertiseService("goal_coords", &GPSdata::service_callback, &gps_node);
-    
-
 
     ros::Rate rate(10);
     while (ros::ok())

@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/arv/catkin_ws/src/controls_stack/build/devel/setup.sh
