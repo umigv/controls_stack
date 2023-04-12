@@ -111,6 +111,7 @@ void rpastar::processNode(int row, int col, Node *parent)
     }
     if (cost_map[row][col] > 128 && cost_map[row][col] < 254)
     {
+        //point (row,col) is over the cost limit, consider it taken space 
         return;
     }
     Node new_node = Node(row,col,parent);

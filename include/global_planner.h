@@ -23,7 +23,10 @@ namespace global_planner {
 class GlobalPlanner : public nav_core::BaseGlobalPlanner {
 public:
 
+// default constructor
 GlobalPlanner();
+
+// non-default constructor
 GlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
 /** overridden classes from interface nav_core::BaseGlobalPlanner **/

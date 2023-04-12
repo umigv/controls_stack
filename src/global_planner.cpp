@@ -1,6 +1,8 @@
 #include <pluginlib/class_list_macros.h>
 #include "../include/global_planner.h"
 #include "../include/rpastar.h"
+#include <tf/tf.h>
+#include <cmath>
 
 //register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanner)
@@ -8,19 +10,19 @@ PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanne
 using namespace std;
 
 
-bool checkPlan(const std::vector<geometry_msgs::PoseStamped>& plan, costmap_2d::Costmap2D* costmap);
-
+bool checkPlan(const std::vector<geometry_msgs::PoseStamped>& plan, costmap_2d::Costmap2D* costmap ,  int goal_x, int goal_y, int pose_x, int pose_y);
 
 //Default Constructor
 namespace global_planner {
 
+//Custom default constructor sets objects to NULL/false values
 GlobalPlanner::GlobalPlanner() : costmap_ros_(NULL), initialized_(false){}
 
 GlobalPlanner::GlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros) : costmap_ros_(NULL), initialized_(false) {
     initialize(name, costmap_ros);
 }
 
-
+// Initializes the global planner to have a costmap to work with
 void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros){
     if(!initialized_){
         costmap_ros_ = costmap_ros;
@@ -46,6 +48,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
     ROS_DEBUG("Got a start: %.2f, %.2f, and a goal: %.2f, %.2f", start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y);
 
+    // clear plan to create new one
     plan.clear();   
     costmap_ = costmap_ros_->getCostmap();
 
@@ -54,6 +57,8 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
         costmap_ros_->getGlobalFrameID().c_str(), goal.header.frame_id.c_str());
         return false;
     }
+
+    // create integer values (x,y) from Pose type for start and goal positions
     int pos_x = (int)((start.pose.position.x - costmap_->getOriginX()) / costmap_->getResolution());
     int pos_y = (int)((start.pose.position.y - costmap_->getOriginY()) / costmap_->getResolution());
 
@@ -70,15 +75,16 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     std::cout << pos_x << " " << pos_y << std::endl;
     std::cout << goal_x << " " << goal_y << std::endl;
     
-    
-    if(!checkPlan(old_plan, costmap_)) {
+    // if path is not valid run A* again
+
+    if(!checkPlan(old_plan, costmap_, goal_x, goal_y, pos_x, pos_y)) {
         std::cout << "Running A*..." << std::endl << std::endl;
         std::pair<int,int> first(pos_y, pos_x);
         std::pair<int,int> last(goal_y, goal_x);
         // rpastar runner = rpastar::rpastar(start, end, &map);
         rpastar runner(first, last, costmap_);
         runner.search();
-        if (runner.goal_found())
+        if (runner.goal_found())            
         {
             std::vector<std::pair<int,int>> path = runner.backtracker();
             std::cout << "Path found!" << std::endl;
@@ -96,9 +102,11 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     return true;
 }
 
+// generate a plan of PoseStamped type using the path that has pair<int,int> type
 void GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<std::pair<int,int>> &path, std::vector<geometry_msgs::PoseStamped>& plan)
 {
     geometry_msgs::PoseStamped pose;
+
     pose.pose.orientation.w = 0.5;
     pose.pose.orientation.x = 0.5;
     pose.pose.orientation.y = 0.5;
@@ -108,8 +116,20 @@ void GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<
     {
         float global_x = (path[i].first*map->getResolution()) + map->getOriginX();
         float global_y = (path[i].second*map->getResolution()) + map->getOriginY();
+        // If we're not at the end of the path, get next pose in path and calculate yaw
+        if(i != path.size() - 1) {
+            
+            float next_global_x = (path[i + 1].first*map->getResolution()) + map->getOriginX();
+            float next_global_y = (path[i + 1].second*map->getResolution()) + map->getOriginY(); 
+            float dx = global_x - next_global_x;
+            float dy = global_y - next_global_y;
+            double yaw = atan2(double(dy), double(dx));
+            pose.pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+        }
+        
         pose.pose.position.x = global_y;
         pose.pose.position.y = global_x;
+
         pose.header.frame_id = "map";
         plan.push_back(pose);
     }
@@ -120,25 +140,54 @@ void GlobalPlanner::generate_path(const costmap_2d::Costmap2D* map, std::vector<
 };
 
 
-// Returns true if path is still valid, so we don't need to rerun a*; returns false if path is
-// blocked or empty, need to run a*
-bool checkPlan(const std::vector<geometry_msgs::PoseStamped>& plan, costmap_2d::Costmap2D* costmap ) {
-    
+
+// Returns true if path is still valid, so we don't need to rerun A*; returns false if path is
+// blocked or empty, need to run a* 
+bool checkPlan(const std::vector<geometry_msgs::PoseStamped>& plan, costmap_2d::Costmap2D* costmap ,  int goal_x, int goal_y, int pose_x, int pose_y) {
+   
+
+
     std::cout << "checking path....\n";
      if (plan.empty()) {
         std::cout << "Plan is empty\n";
         return false;
     }
 
+    geometry_msgs::PoseStamped last = plan[plan.size()-1];
+    uint64_t last_x = (uint64_t)((last.pose.position.x - costmap->getOriginX()) / costmap->getResolution());
+    uint64_t last_y = (uint64_t)((last.pose.position.y - costmap->getOriginY()) / costmap->getResolution());
+    if( std::abs((float)last_x -  goal_x) > 1 || std::abs((float)last_y -  goal_y) > 1){
+       
+        std::cout << "goal is wrong " << " goal : " << goal_x << " " << goal_y << "pose: " << last_x << " " << last_y << std::endl;
+        return false;
+
+    }
+
+    int counter = 0;
+    bool onPath = false;
+    int clearance = 20;
     for(int i = 0 ; i < plan.size(); i++){
-        geometry_msgs::PoseStamped curr_pos = plan[i];
-        
-        uint64_t pos_x = (uint64_t)((curr_pos.pose.position.x - costmap->getOriginX()) / costmap->getResolution());
-        uint64_t pos_y = (uint64_t)((curr_pos.pose.position.y - costmap->getOriginY()) / costmap->getResolution());
-        
+        //if we are more than 20  spaces from the goal, 
+        //then we are fine enough to just run the course without re running 
+        //(can change 20 with the clearance var)
+      
+        geometry_msgs::PoseStamped ith_pos = plan[i];
+        uint64_t pos_x = (uint64_t)((ith_pos.pose.position.x - costmap->getOriginX()) / costmap->getResolution());
+        uint64_t pos_y = (uint64_t)((ith_pos.pose.position.y - costmap->getOriginY()) / costmap->getResolution());
+
+        if(pose_x == (int)pos_x && pose_y ==  (int)pos_y){
+            onPath = true;
+        }
+        if(onPath){
+            counter ++;
+        }
+        if(counter > clearance){
+            return true;
+        }
         // getCost returns unsigned char
         int cost = costmap->getCost(pos_x, pos_y);
-        std::cout << " cost : " << cost << "\n"; 
+        std::cout << "point :" << pos_x << "," << pos_y << " cost : " << cost << "\n"; 
+        // if the cost at a location is not within the threshold the path is not valid
         if(cost >= LOW_THRESHOLD && cost <= UPPER_THRESHOLD){
             return false;
         }
