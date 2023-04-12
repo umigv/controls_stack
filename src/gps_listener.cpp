@@ -52,13 +52,16 @@ public:
         //std::ifstream in;
 
         //First goal
-        GOAL_POINTS.emplace_back(42.2943605, -83.7078159);
+        //42.295480188566096
+        // -83.7074794917452
+
+        GOAL_POINTS.emplace_back(42.295480188566096, -83.7074794917452);
         GOAL_POINTS.emplace_back(42.2948523, -83.7074270);
         //Second goal        
         GOAL_POINTS.emplace_back(42.2949986, -83.7071658);
         //Third goal        
         GOAL_POINTS.emplace_back(42.2951648, -83.7072553);
-        //Fourth goal
+        //Fourth goal  
         GOAL_POINTS.emplace_back(42.2954532, -83.7074961);
         // Fifth goal
         //GOAL_POINTS.emplace_back(42.2953044, -83.7078059);
@@ -179,7 +182,7 @@ private:
         ROS_INFO("Current goal long %f", goal_coords.longitude);
         ROS_INFO("Distance between us and goal %f", dist);
        // ROS_INFO("\n");
-        if (dist < 1..00) { 
+        if (dist < 10.0) { 
         // distance between goal_coords and gps_coords is less than 1 m
             return true;
         }
