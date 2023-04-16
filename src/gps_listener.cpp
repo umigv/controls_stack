@@ -20,6 +20,7 @@
 using std::string;
 using std::pair;
 
+
 // globalsZ
 // std_msgs::float64 origin_x, origin_y;
 
@@ -51,18 +52,21 @@ public:
     void read_goal_coords() {
         //std::ifstream in;
 
+        // rosbag 1 coordinates
+        // 
+
         //First goal
         //42.295480188566096
         // -83.7074794917452
 
-        GOAL_POINTS.emplace_back(42.295480188566096, -83.7074794917452);
-        GOAL_POINTS.emplace_back(42.2948523, -83.7074270);
+        GOAL_POINTS.emplace_back(42.2944798191516174, -83.7077781220563110);
+        GOAL_POINTS.emplace_back(42.2943995626068359, -83.7078380530951904);
         //Second goal        
-        GOAL_POINTS.emplace_back(42.2949986, -83.7071658);
+        GOAL_POINTS.emplace_back(42.2943995626068359, -83.7078380530951904);
         //Third goal        
-        GOAL_POINTS.emplace_back(42.2951648, -83.7072553);
+        GOAL_POINTS.emplace_back(42.2943899060918396, -83.7078124838980835);
         //Fourth goal  
-        GOAL_POINTS.emplace_back(42.2954532, -83.7074961);
+        GOAL_POINTS.emplace_back(42.2946460784543701, -83.7076545592203247);
         // Fifth goal
         //GOAL_POINTS.emplace_back(42.2953044, -83.7078059);
         //other points: (42.2951001, -83.7080617)
@@ -90,13 +94,7 @@ public:
         Coordinate temp2(1,1);
         //ROS_INFO("CHECKING FOR ERROR %f", distance_between_points(temp1, temp2));
         
-        if (location_is_close(GOAL_GPS.front()))
-        {
-            GOAL_POINTS.pop_front();
-            GOAL_GPS.pop_front();
-            indexOfCurrentGoal++;
-            ROS_INFO("MOVED TO NEXT GOAL!!!!!");
-        }
+        
         // ROS_INFO("\n");
         // ROS_INFO("Cartographer x %f", rob_x);
         // ROS_INFO("Cartographer y %f", rob_y);
@@ -108,6 +106,25 @@ public:
         res.success = true;
         res.message = returnString;
         return true;
+    }
+    // REQUIRES: takes in front of GOAL_POINTS
+    // MODIFIES: queue containing the coordinates
+    // EFFECTS: 
+    bool location_is_close(Coordinate &goal_coords) {
+        Coordinate currentLocation(gpsMsg.latitude, gpsMsg.longitude);
+        double dist = distance_between_points(goal_coords, currentLocation);
+       // ROS_INFO("\n");
+        ROS_INFO("Current location lat %f", (currentLocation.latitude * std::pow(10, 10)));
+        ROS_INFO("Current location long %f", currentLocation.longitude * std::pow(10, 10));
+        ROS_INFO("Current goal lat %f", (goal_coords.latitude * std::pow(10, 10)));
+        ROS_INFO("Current goal long %f", goal_coords.longitude * std::pow(10, 10));
+        ROS_INFO("Distance between us and goal %f", dist);
+       // ROS_INFO("\n");
+        if (dist < 2.5) { 
+        // distance between goal_coords and gps_coords is less than 1 m
+            return true;
+        }
+        return false;
     }
 
 private:
@@ -170,24 +187,9 @@ private:
 
         return d;
     }
+    
 
-    // REQUIRES: takes in front of GOAL_POINTS
-    // MODIFIES: queue containing the coordinates
-    // EFFECTS: 
-    bool location_is_close(Coordinate &goal_coords) {
-        Coordinate currentLocation(gpsMsg.latitude, gpsMsg.longitude);
-        double dist = distance_between_points(goal_coords, currentLocation);
-       // ROS_INFO("\n");
-        ROS_INFO("Current goal lat %f", goal_coords.latitude);
-        ROS_INFO("Current goal long %f", goal_coords.longitude);
-        ROS_INFO("Distance between us and goal %f", dist);
-       // ROS_INFO("\n");
-        if (dist < 10.0) { 
-        // distance between goal_coords and gps_coords is less than 1 m
-            return true;
-        }
-        return false;
-    }
+    
 };
 
 
@@ -216,6 +218,13 @@ int main(int argc, char **argv)
     ros::Rate rate(10);
     while (ros::ok())
     {
+        if (gps_node.location_is_close(gps_node.GOAL_GPS.front()) && !gps_node.GOAL_GPS.empty())
+        {
+            gps_node.GOAL_POINTS.pop_front();
+            gps_node.GOAL_GPS.pop_front();
+            ROS_INFO("MOVED TO NEXT GOAL!!!!! %i", gps_node.indexOfCurrentGoal);
+            gps_node.indexOfCurrentGoal++;
+        }
         // GPS Transform part (Subscribing)
         //double gpsLong = gps_node.gpsMsg.longitude;
         //double gpsLat = gps_node.gpsMsg.latitude;
