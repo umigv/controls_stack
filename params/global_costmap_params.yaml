@@ -1,14 +1,14 @@
 global_costmap:
   global_frame: map
-  robot_base_frame: base_footprint
+  robot_base_frame: chassis
 
   update_frequency: 10.0
   publish_frequency: 10.0
   # transform_tolerance: 0.5
   transform_tolerance: 1000
 
-  # static_map: true
-  static_map: false
+  static_map: true
+  # static_map: false
  
   lethal_cost_threshold: 60
   # lethal_cost_threshold: 70
