@@ -1,2 +1,0 @@
-This file contains the live share link to gps_listener.cpp
-https://prod.liveshare.vsengsaas.visualstudio.com/join?F34C8220711F8810B6E526C80E6F98B5A1BE 
