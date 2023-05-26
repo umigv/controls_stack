@@ -11,6 +11,7 @@
 #include <tf2_ros/transform_listener.h>
 #include "geometry_msgs/Point.h"
 #include "std_msgs/UInt32MultiArray.h"
+#include "nav_msgs/OccupancyGrid.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/Float64.h"
@@ -31,6 +32,42 @@ struct Coordinate {
     double longitude;
 };
 
+// Struct for map metadata in more accessible format
+struct OccGridInfo {
+
+    OccGridInfo(float resolutionIn, uint32_t widthIn, uint32_t heightIn, float originXIn, float originYIN) {
+        this->resolution = resolutionIn;
+        this->width = widthIn;
+        this->height = heightIn;
+        this->origin_x = originXIn;
+        this->origin_y = originYIN;
+    }
+
+    OccGridInfo() {
+        resolution = 0;
+        width = 0;
+        height = 0;
+        origin_x = 0;
+        origin_y = 0;
+    }
+
+    void update(float resolutionIn, uint32_t widthIn, uint32_t heightIn, float originXIn, float originYIN) {
+        this->resolution = resolutionIn;
+        this->width = widthIn;
+        this->height = heightIn;
+        this->origin_x = originXIn;
+        this->origin_y = originYIN;
+    }
+
+    float resolution;
+    uint32_t width;
+    uint32_t height;
+    float origin_x;
+    float origin_y;
+
+
+};
+
 class GPSdata {
 public:
     //LATITUDE, LONGITUDE
@@ -38,19 +75,22 @@ public:
     std::deque<Coordinate> GOAL_POINTS; //This 
     std::deque<Coordinate> GOAL_GPS;
     // Get from tf transform function.
-    double rob_x, rob_y;
+    // double rob_x, rob_y;
     sensor_msgs::NavSatFix gpsMsg;
     tf2_ros::Buffer *tfBuffer;
     // tf2_ros::TransformListener tfListener;
     uint32_t indexOfCurrentGoal = 1;
+    OccGridInfo mapInfo;
 
     
     GPSdata(ros::NodeHandle nh_, tf2_ros::Buffer &tfBufferInstance) {
+
         this->tfBuffer = &tfBufferInstance;
         gps_sub = nh_.subscribe("/gps/fix", 100, &GPSdata::gpsCallback, this);
-        cartographer_sub = nh_.subscribe("/tf_static", 100, &GPSdata::cartographerCallback, this); // gives x,y coords
-        // map_sub = nh_.subscribe("/map", 100, &GPSdata::mapCallback, this); // gives map metadata
+        map_sub = nh_.subscribe("/map", 100, &GPSdata::mapCallback, this); // Gets map metadata into mapInfo variable
         
+        // cartographer_sub = nh_.subscribe("/tf_static", 100, &GPSdata::cartographerCallback, this); // gives x,y coords
+
     }
     
     //reads the text file of gps coords and returns correct x y coords
@@ -58,6 +98,8 @@ public:
 
         // Coordinates inside but moved slightly
         GOAL_POINTS.emplace_back(42.294522, -83.708840);
+        // Pretty far in one direction away
+        GOAL_POINTS.emplace_back(42.5, -83.708840);
         // Less than a meter away
         GOAL_POINTS.emplace_back(42.2946, -83.708840);
         // About 8 meters away
@@ -65,6 +107,7 @@ public:
  
         GOAL_GPS = GOAL_POINTS;
     }
+
 
     void gps_transform() {
         for (size_t i = 0; i < GOAL_POINTS.size(); i++) {
@@ -80,6 +123,8 @@ public:
             GOAL_POINTS[i].longitude = y_dist;
         }
     }
+    
+    
     // srv function boolean:
     bool service_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
     // bool service_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
@@ -99,8 +144,6 @@ public:
         // distance_between_points();
         double final_goal_x = distance_between_points(xDifferenceCoordsRobot, xDifferenceCoordsGoal);
         double final_goal_y = distance_between_points(yDifferenceCoordsRobot, yDifferenceCoordsGoal);
-
-
         
         // double final_goal_x = GOAL_POINTS.front().latitude;
         // double final_goal_y = GOAL_POINTS.front().longitude;
@@ -114,22 +157,85 @@ public:
         double map_relative_goal_x = final_goal_x - robot_x;
         double map_relative_goal_y = final_goal_y - robot_y;
 
-        // Get map metadata to find out size of occ grid, and return locations in there instead.
+        struct Corner {
+            
+            Corner(double xIn, double yIn) : x(xIn), y(yIn) {}
+            double x;
+            double y;
 
-        ROS_INFO("Service called:");
+        };
+
+        // Occupancy grid corners
+        Corner bottomLeft = Corner(mapInfo.origin_x, mapInfo.origin_y);
+        Corner topLeft = Corner(mapInfo.origin_x, mapInfo.origin_y + (mapInfo.height * mapInfo.resolution));
+        Corner bottomRight = Corner(mapInfo.origin_x + (mapInfo.width * mapInfo.resolution), mapInfo.origin_y);
+        Corner topRight = Corner(bottomRight.x, topLeft.y);
+        double max_x = bottomRight.x;
+        double min_x = bottomLeft.x;
+        double max_y = topLeft.y;
+        double min_y = bottomLeft.y;
+
+        // Goal position
+        double goal_x = map_relative_goal_x;
+        double goal_y = map_relative_goal_y;
+
+        double return_x = goal_x; 
+        double return_y = goal_y;
+        
+        // Make sure x is in occupancy grid
+        if (goal_x >= max_x) {
+
+            return_x = max_x - 0.25; // Make sure we aren't exactly on the edge
+
+        } else if (goal_x <= min_x) {
+
+            return_x = min_x + 0.25;
+
+        } else {
+
+            return_x = goal_x;
+
+        }
+
+        // Make sure y is in occupancy grid
+        if (goal_y >= max_y) {
+
+            return_y = max_y - 0.25;
+
+        } else if (goal_y <= min_y) {
+
+            return_y = min_y + 0.25;
+
+        } else {
+
+            return_y = goal_y;
+
+        }
+
+        returnString = std::to_string(return_x) + "|" + std::to_string(return_y);
+
+        ROS_INFO("Service called!");
+        ROS_INFO("Goal Latitude: %f", goal_latitude);
+        ROS_INFO("Goal Longitude: %f", goal_longitude);
+        ROS_INFO("Robot Latitude: %f", robot_latitude);
+        ROS_INFO("Robot Longitude: %f", robot_longitude);
         ROS_INFO("Final Goal X: %f", final_goal_x);
         ROS_INFO("Final Goal Y: %f", final_goal_y);
         ROS_INFO("Robot Map X: %f", robot_x);
         ROS_INFO("Robot Map Y: %f", robot_y);
-        ROS_INFO("Map Frame Goal X: %f", map_relative_goal_x);
-        ROS_INFO("Map Frame Goal Y: %f", map_relative_goal_y);
+        ROS_INFO("Map Frame Raw Goal X: %f", map_relative_goal_x);
+        ROS_INFO("Map Frame Raw Goal Y: %f", map_relative_goal_y);
+        ROS_INFO("Inside Occupancy Grid Goal X: %f", return_x);
+        ROS_INFO("Inside Occupancy Grid Goal Y: %f", return_y);
 
-        returnString = std::to_string(map_relative_goal_x) + "|" + std::to_string(map_relative_goal_y);
 
         res.success = true;
         res.message = returnString;
         return true;
+
     }
+
+
     // REQUIRES: takes in front of GOAL_POINTS
     // MODIFIES: queue containing the coordinates
     // EFFECTS: 
@@ -141,13 +247,13 @@ public:
 
 
         
-        ROS_INFO("\n");
-        ROS_INFO("Current Latitude %f", currentLocation.latitude);
-        ROS_INFO("Current Longitude %f", currentLocation.longitude);
-        ROS_INFO("Goal Latitude %f", goal_coords.latitude);
-        ROS_INFO("Goal Longitude %f", goal_coords.longitude);
-        ROS_INFO("Calculated Distance %f", dist);
-        ROS_INFO("\n");
+        // ROS_INFO("\n");
+        // ROS_INFO("Current Latitude %f", currentLocation.latitude);
+        // ROS_INFO("Current Longitude %f", currentLocation.longitude);
+        // ROS_INFO("Goal Latitude %f", goal_coords.latitude);
+        // ROS_INFO("Goal Longitude %f", goal_coords.longitude);
+        // ROS_INFO("Calculated Distance %f", dist);
+        // ROS_INFO("\n");
         
         
 
@@ -173,15 +279,25 @@ private:
         return;
     }
 
-    void cartographerCallback(const tf2_msgs::TFMessage::ConstPtr &msg)
-    {        
-        // update current location of robot in global frame (x,y in meters)
-        rob_x = msg->transforms[0].transform.translation.x;
-        rob_y = msg->transforms[0].transform.translation.y;
+    // void cartographerCallback(const tf2_msgs::TFMessage::ConstPtr &msg)
+    // {        
+    //     // update current location of robot in global frame (x,y in meters)
+    //     rob_x = msg->transforms[0].transform.translation.x;
+    //     rob_y = msg->transforms[0].transform.translation.y;
+
+    // }
+
+    void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg) {
+
+        float resolution = msg->info.resolution;
+        uint32_t width = msg->info.width;
+        uint32_t height = msg->info.height;;
+        float origin_x = msg->info.origin.position.x;
+        float origin_y = msg->info.origin.position.y;
+
+        mapInfo.update(resolution, width, height, origin_x, origin_y);
 
     }
-
-    
 
 
     //Expecting longitude latitude, needs to be latitude longitude.
@@ -203,27 +319,14 @@ private:
         double a = sin(delta_phi / 2) * sin(delta_phi / 2) +
                 cos(phi1) * cos(phi2) *
                 sin(delta_lambda / 2) * sin(delta_lambda / 2);
-      //  ROS_INFO("a %f", a);
-       // ROS_INFO("first sin %f", sin(delta_phi / 2));
 
         double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-       // ROS_INFO("c %f", c);
 
         double d = R * c; // in meters
-        
-    //    ROS_INFO("\n");
-    //    ROS_INFO("LAT 1 %f", current.latitude);
-    //    ROS_INFO("LONG 1 %f", current.longitude);
-    //    ROS_INFO("LAT 2 %f", target.latitude);
-    //    ROS_INFO("LONG 2 %f", target.longitude);
-    //    ROS_INFO("DISTANCE %f", d);
-    //    ROS_INFO("\n");
 
 
         return d;
     }
-    
-
     
 };
 
