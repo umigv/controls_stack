@@ -10,13 +10,13 @@ find_package(catkin REQUIRED COMPONENTS
   global_planner 
   move_base 
   nav_core 
-  # Added cartographer_ros_msgs and geometry_msgs
- # cartographer_ros_msgs 
   geometry_msgs
   message_generation
   tf2_msgs
   std_srvs
   nav_msgs
+  actionlib
+  move_base_msgs
   )
 
 #moved service files before catkin package
@@ -25,7 +25,7 @@ add_service_files(
   servicemsg.srv
 )
 
-catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core geometry_msgs message_runtime tf2_msgs std_srvs nav_msgs) 
+catkin_package(CATKIN_DEPENDS roscpp std_msgs global_planner move_base nav_core geometry_msgs message_runtime tf2_msgs std_srvs nav_msgs actionlib move_base_msgs) 
 
 include_directories(
     ${catkin_INCLUDE_DIRS}

@@ -22,7 +22,6 @@
 using std::string;
 using std::pair;
 
-
 // globalsZ
 // std_msgs::float64 origin_x, origin_y;
 
@@ -77,10 +76,12 @@ public:
     // Get from tf transform function.
     // double rob_x, rob_y;
     sensor_msgs::NavSatFix gpsMsg;
+    sensor_msgs::NavSatFix gpsMsg2;
     tf2_ros::Buffer *tfBuffer;
     // tf2_ros::TransformListener tfListener;
     uint32_t indexOfCurrentGoal = 1;
     OccGridInfo mapInfo;
+    bool north = true;
 
     
     GPSdata(ros::NodeHandle nh_, tf2_ros::Buffer &tfBufferInstance) {
@@ -97,13 +98,34 @@ public:
     void read_goal_coords() {
 
         // Coordinates inside but moved slightly
-        GOAL_POINTS.emplace_back(42.294522, -83.708840);
-        // Pretty far in one direction away
-        GOAL_POINTS.emplace_back(42.5, -83.708840);
-        // Less than a meter away
-        GOAL_POINTS.emplace_back(42.2946, -83.708840);
-        // About 8 meters away
-        GOAL_POINTS.emplace_back(42.3, -83.8);
+        // GOAL_POINTS.emplace_back(42.66795725703097, -83.21863482634633);
+        // GOAL_POINTS.emplace_back(42.668083911275964,-83.21868066215706); // Lane South
+        // GOAL_POINTS.emplace_back(42.668244416437126, -83.21867985325929); // Ramp South
+        GOAL_POINTS.emplace_back(42.668278312114,-83.2186698913055); // Lane South
+
+        // if(!north) {
+        //     GOAL_POINTS.emplace_back(42.667928,-83.219328); // Lane South
+        //     GOAL_POINTS.emplace_back(42.668077,-83.219359); // Ramp South
+        //     GOAL_POINTS.emplace_back(42.668121,-83.219361); // Ramp North
+        //     GOAL_POINTS.emplace_back(42.66827,-83.21934); // Lane North
+        // }
+        // else {
+        //     GOAL_POINTS.emplace_back(42.66827,-83.21934); // Lane North
+        //     GOAL_POINTS.emplace_back(42.668121,-83.219361); // Ramp North
+        //     GOAL_POINTS.emplace_back(42.668077,-83.219359); // Ramp South
+        //     GOAL_POINTS.emplace_back(42.667928,-83.219328); // Lane South
+        // }
+
+
+
+
+        // GOAL_POINTS.emplace_back(42.66829817200148, -83.21711197263554);
+        // GOAL_POINTS.emplace_back(42.66820340595553, -83.21713885711084);
+        
+        // GOAL_POINTS.emplace_back(42.66798990794114, -83.21709411837914);
+        // GOAL_POINTS.emplace_back(42.66796419984246, -83.21731675692062);
+
+
  
         GOAL_GPS = GOAL_POINTS;
     }
@@ -136,6 +158,7 @@ public:
         double goal_latitude = GOAL_GPS.front().latitude;
         double goal_longitude = GOAL_GPS.front().longitude;
 
+
         Coordinate xDifferenceCoordsRobot(robot_latitude, 0);
         Coordinate xDifferenceCoordsGoal(goal_latitude, 0);
 
@@ -144,18 +167,37 @@ public:
         // distance_between_points();
         double final_goal_x = distance_between_points(xDifferenceCoordsRobot, xDifferenceCoordsGoal);
         double final_goal_y = distance_between_points(yDifferenceCoordsRobot, yDifferenceCoordsGoal);
+
+        if(!north) {
+            if(goal_latitude - robot_latitude > 0){
+                final_goal_x *= -1;
+            }
+
+            if (goal_longitude - robot_longitude < 0){
+                final_goal_y *= -1;
+            }   
+        }
+        else {
+            if(goal_latitude - robot_latitude < 0){
+                final_goal_x *= -1;
+            }
+
+            if (goal_longitude - robot_longitude > 0){
+                final_goal_y *= -1;
+            }
+        }
         
         // double final_goal_x = GOAL_POINTS.front().latitude;
-        // double final_goal_y = GOAL_POINTS.front().longitude;
+        // double final_goal_y = GOAL_POINTS.hfront().longitude;
         
         // TODO: Fix this so that it has the x and y in the map frame for the goal (within the map preferably)
-        geometry_msgs::TransformStamped robot_transform = (*tfBuffer).lookupTransform("map", "chassis", ros::Time(0));
+        //geometry_msgs::TransformStamped robot_transform = (*tfBuffer).lookupTransform("map", "chassis", ros::Time(0));
 
-        double robot_x = robot_transform.transform.translation.x;
-        double robot_y = robot_transform.transform.translation.y;
+        //double robot_x = robot_transform.transform.translation.x;
+        //double robot_y = robot_transform.transform.translation.y;
 
-        double map_relative_goal_x = final_goal_x - robot_x;
-        double map_relative_goal_y = final_goal_y - robot_y;
+        double map_relative_goal_x = final_goal_x;// + robot_x;
+        double map_relative_goal_y = final_goal_y;// + robot_y;
 
         struct Corner {
             
@@ -164,6 +206,10 @@ public:
             double y;
 
         };
+
+        // ROS_INFO("robot latitude: %f");
+
+
 
         // Occupancy grid corners
         Corner bottomLeft = Corner(mapInfo.origin_x, mapInfo.origin_y);
@@ -214,6 +260,10 @@ public:
 
         returnString = std::to_string(return_x) + "|" + std::to_string(return_y);
 
+        if (goal_latitude == 0 && goal_longitude == 0) {
+            returnString = std::to_string(0) + "|" + std::to_string(0);
+        }
+
         ROS_INFO("Service called!");
         ROS_INFO("Goal Latitude: %f", goal_latitude);
         ROS_INFO("Goal Longitude: %f", goal_longitude);
@@ -221,8 +271,8 @@ public:
         ROS_INFO("Robot Longitude: %f", robot_longitude);
         ROS_INFO("Final Goal X: %f", final_goal_x);
         ROS_INFO("Final Goal Y: %f", final_goal_y);
-        ROS_INFO("Robot Map X: %f", robot_x);
-        ROS_INFO("Robot Map Y: %f", robot_y);
+        // ROS_INFO("Robot Map X: %f", robot_x);
+        // ROS_INFO("Robot Map Y: %f", robot_y);
         ROS_INFO("Map Frame Raw Goal X: %f", map_relative_goal_x);
         ROS_INFO("Map Frame Raw Goal Y: %f", map_relative_goal_y);
         ROS_INFO("Inside Occupancy Grid Goal X: %f", return_x);
@@ -241,7 +291,7 @@ public:
     // EFFECTS: 
     bool location_is_close(Coordinate &goal_coords) {
 
-        Coordinate currentLocation(gpsMsg.latitude, gpsMsg.longitude);
+        Coordinate currentLocation(gpsMsg2.latitude, gpsMsg2.longitude);
         // double dist = distance_between_points(goal_coords, currentLocation);
         double dist = distance_between_points(currentLocation, goal_coords);
 
@@ -257,7 +307,7 @@ public:
         
         
 
-        if (dist < 2.5) { 
+        if (dist < 3) { 
         // distance between goal_coords and gps_coords is less than 1 m
             return true;
         }
@@ -269,12 +319,20 @@ private:
     ros::Subscriber gps_sub;
     ros::Subscriber cartographer_sub;
     ros::Subscriber map_sub;
+    bool NOTRUN = true;
 
     void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg)
     {
         // might need to fix this later
         // ROS_INFO("GPS Callback Function Called");
-        gpsMsg = *msg;
+        if (NOTRUN) {
+            gpsMsg = *msg;
+            gpsMsg2 = *msg;
+
+            NOTRUN = false;
+        } 
+        gpsMsg2 = *msg;
+
         // ROS_INFO("GPS: %f, %f", msg->latitude, msg->longitude);
         return;
     }
@@ -359,12 +417,26 @@ int main(int argc, char **argv)
 
     ros::ServiceServer service = nh.advertiseService("goal_coords", &GPSdata::service_callback, &gps_node);
 
+    
 
-
+    bool first = true;
 
     ros::Rate rate(10);
     while (ros::ok())
     {
+        // if(first) {
+        //     if(!gps_node.north) {
+        //         gps_node.GOAL_GPS.emplace_front(42.667928, gps_node.gpsMsg.longitude);
+        //         gps_node.GOAL_GPS.emplace_back(42.66827, gps_node.gpsMsg.longitude);
+        //         gps_node.GOAL_GPS.emplace_back(gps_node.gpsMsg.latitude, gps_node.gpsMsg.longitude);
+        //     }
+        //     else {
+        //         gps_node.GOAL_GPS.emplace_front(42.66827, gps_node.gpsMsg.longitude);
+        //         gps_node.GOAL_GPS.emplace_back(42.667928, gps_node.gpsMsg.longitude);
+        //         gps_node.GOAL_GPS.emplace_back(gps_node.gpsMsg.latitude, gps_node.gpsMsg.longitude);
+        //     } 
+        // first = false;          
+        // }
         if (gps_node.location_is_close(gps_node.GOAL_GPS.front()) && !gps_node.GOAL_GPS.empty())
         {
             gps_node.GOAL_POINTS.pop_front();
